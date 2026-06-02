@@ -115,13 +115,9 @@
                     </p>
                 </div>
 
-                <div class="bg-white text-gray-700 rounded-xl w-24 h-24 flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fa-solid fa-bolt text-3xl mea-text"></i>
-                        <p class="text-xs mt-1 font-semibold">MEA LOGO</p>
-                    </div>
+                <div class="bg-white rounded-xl w-24 h-24 flex items-center justify-center shadow">
+                    <i class="fa-solid fa-bolt text-5xl mea-text"></i>
                 </div>
-
             </div>
         </div>
 
@@ -164,7 +160,7 @@
             สรุปการตรวจสอบ
         </h2>
 
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-1 gap-4">
 
             <div>
                 <label class="block text-sm text-gray-600 mb-1">
@@ -173,14 +169,6 @@
                 <input type="text"
                        class="w-full border rounded-lg px-3 py-2"
                        placeholder="ชื่อผู้ตรวจสอบ">
-            </div>
-
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">
-                    วันที่ (Date)
-                </label>
-                <input type="date"
-                       class="w-full border rounded-lg px-3 py-2">
             </div>
 
         </div>
@@ -204,6 +192,7 @@
 const sections = [
 {
 title:"Section 1 : การตรวจสอบโครงสร้างและตู้ (Enclosure & Structure)",
+icon:"fa-building",
 critical:false,
 items:[
 ["1.1","ตรวจสอบขนาดตู้และรูปแบบตรงตามแบบ","IEC 61439"],
@@ -213,6 +202,7 @@ items:[
 },
 {
 title:"Section 2 : บัสบาร์และตัวนำ (Busbar & Conductors)",
+icon:"fa-bars",
 critical:false,
 items:[
 ["2.1","ตรวจสอบขนาดบัสบาร์และวัสดุ","IEC 61439"],
@@ -222,6 +212,7 @@ items:[
 },
 {
 title:"Section 3 : เซอร์กิตเบรกเกอร์ (Circuit Breaker)",
+icon:"fa-bolt",
 critical:false,
 items:[
 ["3.1","ตรวจสอบรุ่นและพิกัดกระแส MCCB/ACB","IEC 60947"],
@@ -231,6 +222,7 @@ items:[
 },
 {
 title:"Section 4 : สายไฟและการเดินสาย (Cable & Wiring)",
+icon:"fa-plug",
 critical:false,
 items:[
 ["4.1","ตรวจสอบขนาดสายไฟ","IEC 60364"],
@@ -240,6 +232,7 @@ items:[
 },
 {
 title:"Section 5 : อุปกรณ์เครื่องวัด (Current Transformer, Lamp, Digital Meter)",
+icon:"fa-gauge-high",
 critical:false,
 items:[
 ["5.1","ตรวจสอบอัตราทด CT","IEC 61869"],
@@ -249,6 +242,7 @@ items:[
 },
 {
 title:"Section 6 : ทดสอบการทำงาน (Function Test)",
+icon:"fa-gears",
 critical:false,
 items:[
 ["6.1","ทดสอบปุ่ม ON/OFF","FAT Procedure"],
@@ -258,6 +252,7 @@ items:[
 },
 {
 title:"Section 7 : การทดสอบไฟฟ้า (Electrical Testing)",
+icon:"fa-triangle-exclamation",
 critical:true,
 items:[
 ["7.1","Insulation Resistance Test","IEC 61439"],
@@ -278,10 +273,17 @@ let html = `
 
         <div class="flex items-center justify-between">
 
-            <h2 class="font-bold text-lg md:text-xl">
-                ${section.title}
-            </h2>
+            <h2 class="font-bold text-lg md:text-xl flex items-center gap-3">
 
+                <div class="bg-white text-gray-700 w-10 h-10 rounded-lg flex items-center justify-center shadow">
+
+                    <i class="fa-solid ${section.icon}"></i>
+
+                </div>
+
+                ${section.title}
+
+            </h2>
             ${
                 section.critical
                 ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold">CRITICAL TEST</span>'
