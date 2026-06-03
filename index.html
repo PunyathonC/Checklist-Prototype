@@ -457,7 +457,15 @@ document.addEventListener("change",(e)=>{
 
 // Printn
 function printChecklist(){
+    
+    document.querySelectorAll(".remarks-input")
+    .forEach(textarea=>{
 
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+
+    });
+    
     const printBtn =
         document.getElementById("printBtn");
 
@@ -559,6 +567,9 @@ window.addEventListener("load",()=>{
         if(data.remarks[index] !== undefined){
             input.value = data.remarks[index];
         }
+        
+        input.style.height = "auto";
+        input.style.height = input.scrollHeight + "px";
 
     });
 
