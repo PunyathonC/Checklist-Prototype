@@ -5,18 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MDB Factory Acceptance Test (FAT) Checklist</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         *{
             font-family: 'Prompt', sans-serif;
+            box-sizing: border-box;
         }
 
         :root{
@@ -75,7 +73,6 @@
         }
 
         @media print {
-
             body{
                 background:white !important;
             }
@@ -94,8 +91,8 @@
                 overflow:visible !important;
                 page-break-before: always;
                 break-before: page;
-                overflow: visible !important;
             }
+            
             .section-card:first-child{
                 page-break-before: auto;
                 break-before: auto;
@@ -109,26 +106,32 @@
             input,
             textarea{
                 border:none !important;
+                background:transparent !important;
+                padding:0 !important;
             }
 
             textarea{
                 height:auto !important;
                 overflow:visible !important;
                 white-space:pre-wrap !important;
+            }
+            
+            /* แสดงเส้นใต้จางๆ สำหรับช่อง Remarks ตอนพิมพ์ออกกระดาษ */
+            .remarks-container {
+                border-top: 1px dashed #ccc !important;
+                margin-top: 8px !important;
+                padding-top: 4px !important;
+            }
         }
-    }
     </style>
 </head>
 <body class="min-h-screen">
 
 <div class="max-w-7xl mx-auto p-4 md:p-8">
 
-    <!-- Header -->
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-
         <div class="mea-bg text-white p-6">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold">
                         Check list ตรวจสอบตู้ MDB ที่โรงงาน (FAT test)
@@ -137,7 +140,6 @@
                         Main Distribution Board (MDB) Factory Test
                     </p>
                 </div>
-
                 <div class="bg-white rounded-xl w-24 h-24 flex items-center justify-center shadow">
                     <i class="fa-solid fa-bolt text-5xl mea-text"></i>
                 </div>
@@ -146,7 +148,6 @@
 
         <div class="p-6">
             <div class="grid md:grid-cols-3 gap-4">
-
                 <div>
                     <label class="text-sm text-gray-500">Reference Spec</label>
                     <input type="text"
@@ -154,14 +155,12 @@
                            value="BQD-3042"
                            class="w-full mt-1 border rounded-lg px-3 py-2 bg-gray-50">
                 </div>
-
                 <div>
                     <label class="text-sm text-gray-500">Revision Date</label>
                     <input type="date"
                            id="revisionDate"
                            class="w-full mt-1 border rounded-lg px-3 py-2">
                 </div>
-
                 <div>
                     <label class="text-sm text-gray-500">Project / MDB No.</label>
                     <input type="text"
@@ -169,25 +168,18 @@
                            placeholder="Enter MDB Information"
                            class="w-full mt-1 border rounded-lg px-3 py-2">
                 </div>
-
             </div>
         </div>
-
     </div>
 
-    <!-- Checklist Container -->
     <div id="checklistContainer"></div>
 
-    <!-- Inspector Section -->
     <div class="bg-white rounded-2xl shadow-lg p-6 mt-8">
-
         <h2 class="text-xl font-bold mb-4 mea-text">
             <i class="fa-solid fa-user-check mr-2"></i>
             สรุปการตรวจสอบ
         </h2>
-
         <div class="grid md:grid-cols-1 gap-4">
-
             <div>
                 <label class="block text-sm text-gray-600 mb-1">
                     ผู้ตรวจสอบ (Inspector Name)
@@ -197,247 +189,192 @@
                        class="w-full border rounded-lg px-3 py-2"
                        placeholder="ชื่อผู้ตรวจสอบ">
             </div>
-
         </div>
-
     </div>
 
 </div>
 
-<!-- Floating Print Button -->
 <button id="printBtn"
         onclick="printChecklist()"
         class="floating-print mea-bg hover:opacity-90 text-white px-6 py-4 rounded-full shadow-lg font-semibold text-lg">
-
     <i class="fa-solid fa-print mr-2"></i>
     Print / Save as PDF
-
 </button>
 
-<!-- Clear Data Button -->
-<button
-        id="clearBtn"
+<button id="clearBtn"
         onclick="clearChecklist()"
         class="floating-clear fixed bottom-24 right-5 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-full shadow-lg font-semibold">
-
     <i class="fa-solid fa-trash mr-2"></i>
     Clear Data
-
 </button>
 
 <script>
-
 const sections = [
-{
-title:"Section 1 : การตรวจสอบโครงสร้างและตู้ (Enclosure & Structure)",
-icon:"fa-building",
-critical:false,
-items:[
-["1.1","ขนาดตู้ (กว้าง x ยาว x สูง) ตามแบบที่อนุมัติ","ตามแบบ"],
-["1.2","โครงสร้างตู้ทำจากเหล็กหนาไม่น้อยกว่า 3 มม.","Spec ข้อ 9.1"],
-["1.3","ฝาตู้ทุกด้านเป็นชนิด Electrogalvanize และพ่นสี มีความหนา 2 มม.","Spec ข้อ 9.2"],
-["1.4","สีตู้ RAL9002 และความหนาสี ≥ 60 ไมครอน","Spec ข้อ 9.3"],
-["1.5","Mimic Bus Normal สีดำ / Emergency สีแดง หนา ≥ 3 มม. / กว้าง ≥ 10 มม.","Spec ข้อ 13"],
-["1.6","Nameplate ระบุ From / To และ Main-Branch CB","Spec ข้อ 13"],
-["1.7","ป้าย MEA Logo, QR Code และ Logo ผู้ผลิต","Spec ข้อ 13"]
-]
-},
-
-{
-title:"Section 2 : บัสบาร์และตัวนำ (Busbar & Conductors)",
-icon:"fa-network-wired",
-critical:false,
-items:[
-["2.1","ขนาด Line และ Neutral Busbar ตามแบบ","Spec ข้อ 10.3"],
-["2.2","ขนาด Ground Busbar ตามพิกัด Main CB","Spec ข้อ 10"],
-["2.3","Bonding ระหว่าง Neutral และ Ground Busbar","ตามแบบ"],
-["2.4","สี Busbar L1/L2/L3/N/G ถูกต้อง","Spec ข้อ 10.7"]
-]
-},
-
-{
-title:"Section 3 : เซอร์กิตเบรกเกอร์ (Circuit Breaker)",
-icon:"fa-bolt",
-critical:false,
-items:[
-["3.1","ตรวจสอบยี่ห้อ รุ่น Rating Pole Ics และ Icu ของ CB","ตามแบบ"],
-["3.2","ตรวจสอบการติดตั้งและแรงบิดขันแน่น","Manufacturer Standard"],
-["3.3","ตรวจสอบการตั้งค่า Protection","IEC 60947-2"]
-]
-},
-
-{
-title:"Section 4 : สายไฟและการเดินสาย (Cable & Wiring)",
-icon:"fa-plug",
-critical:false,
-items:[
-["4.1","สายควบคุมชนิด IEC08 (HVSF)","Spec ข้อ 11.1"],
-["4.2","ขนาดสาย Control / Current / Voltage Circuit 2.5 sq.mm.","Spec ข้อ 11.1"],
-["4.3","สาย Ground ประตู 10 sq.mm. แบบสายทองแดงถัก","Spec ข้อ 11.1"],
-["4.4","Wire Mark แบบปลอกสวมทั้งต้นทางและปลายทาง","Spec ข้อ 11.5"],
-["4.5","สีสายไฟถูกต้องตามประเภทวงจร","Spec ข้อ 10.6"]
-]
-},
-
-{
-title:"Section 5 : อุปกรณ์เครื่องวัด (Current Transformer, Lamp, Digital Meter)",
-icon:"fa-gauge-high",
-critical:false,
-items:[
-["5.1","Current Transformer Ratio / Class / Burden","ตามแบบ"],
-["5.2","Pilot Lamp L1/L2/L3 สีขาว","Spec ข้อ 12.2"],
-["5.3","Fuse Spare อย่างน้อย 10%","Spec ข้อ 12.3"]
-]
-},
-
-{
-title:"Section 6 : ทดสอบการทำงาน (Function Test)",
-icon:"fa-gears",
-critical:false,
-items:[
-["6.1","ทดสอบ Alarm, Status, Trip และ Interlock","FAT Procedure"],
-["6.2","ทดสอบ Meter V/I/Watt/Var/VA/PF","FAT Procedure"],
-["6.3","ทดสอบ Test Trip MCCB","FAT Procedure"],
-["6.4","ทดสอบ Trip Unit ของ ACB","FAT Procedure"]
-]
-},
-
-{
-title:"Section 7 : การทดสอบไฟฟ้า (Electrical Testing)",
-icon:"fa-triangle-exclamation",
-critical:true,
-items:[
-["7.1","Dielectric Test 2000VAC 1 นาที","IEC 61439-1"],
-["7.2","Insulation Resistance Test 1000VDC","IEC 61439-1"],
-["7.3","Ground Continuity Test ≤ 0.1 Ohm","IEC 60335-1"],
-["7.4","Contact Resistance Test","Manufacturer Standard"]
-]
-}
+    {
+        title:"Section 1 : การตรวจสอบโครงสร้างและตู้ (Enclosure & Structure)",
+        icon:"fa-building",
+        critical:false,
+        items:[
+            ["1.1","ขนาดตู้ (กว้าง x ยาว x สูง) ตามแบบที่อนุมัติ","ตามแบบ"],
+            ["1.2","โครงสร้างตู้ทำจากเหล็กหนาไม่น้อยกว่า 3 มม.","Spec ข้อ 9.1"],
+            ["1.3","ฝาตู้ทุกด้านเป็นชนิด Electrogalvanize และพ่นสี มีความหนา 2 มม.","Spec ข้อ 9.2"],
+            ["1.4","สีตู้ RAL9002 และความหนาสี ≥ 60 ไมครอน","Spec ข้อ 9.3"],
+            ["1.5","Mimic Bus Normal สีดำ / Emergency สีแดง หนา ≥ 3 มม. / กว้าง ≥ 10 มม.","Spec ข้อ 13"],
+            ["1.6","Nameplate ระบุ From / To และ Main-Branch CB","Spec ข้อ 13"],
+            ["1.7","ป้าย MEA Logo, QR Code และ Logo ผู้ผลิต","Spec ข้อ 13"]
+        ]
+    },
+    {
+        title:"Section 2 : บัสบาร์และตัวนำ (Busbar & Conductors)",
+        icon:"fa-network-wired",
+        critical:false,
+        items:[
+            ["2.1","ขนาด Line และ Neutral Busbar ตามแบบ","Spec ข้อ 10.3"],
+            ["2.2","ขนาด Ground Busbar ตามพิกัด Main CB","Spec ข้อ 10"],
+            ["2.3","Bonding ระหว่าง Neutral และ Ground Busbar","ตามแบบ"],
+            ["2.4","สี Busbar L1/L2/L3/N/G ถูกต้อง","Spec ข้อ 10.7"]
+        ]
+    },
+    {
+        title:"Section 3 : เซอร์กิตเบรกเกอร์ (Circuit Breaker)",
+        icon:"fa-bolt",
+        critical:false,
+        items:[
+            ["3.1","ตรวจสอบยี่ห้อ รุ่น Rating Pole Ics และ Icu ของ CB","ตามแบบ"],
+            ["3.2","ตรวจสอบการติดตั้งและแรงบิดขันแน่น","Manufacturer Standard"],
+            ["3.3","ตรวจสอบการตั้งค่า Protection","IEC 60947-2"]
+        ]
+    },
+    {
+        title:"Section 4 : สายไฟและการเดินสาย (Cable & Wiring)",
+        icon:"fa-plug",
+        critical:false,
+        items:[
+            ["4.1","สายควบคุมชนิด IEC08 (HVSF)","Spec ข้อ 11.1"],
+            ["4.2","ขนาดสาย Control / Current / Voltage Circuit 2.5 sq.mm.","Spec ข้อ 11.1"],
+            ["4.3","สาย Ground ประตู 10 sq.mm. แบบสายทองแดงถัก","Spec ข้อ 11.1"],
+            ["4.4","Wire Mark แบบปลอกสวมทั้งต้นทางและปลายทาง","Spec ข้อ 11.5"],
+            ["4.5","สีสายไฟถูกต้องตามประเภทวงจร","Spec ข้อ 10.6"]
+        ]
+    },
+    {
+        title:"Section 5 : อุปกรณ์เครื่องวัด (Current Transformer, Lamp, Digital Meter)",
+        icon:"fa-gauge-high",
+        critical:false,
+        items:[
+            ["5.1","Current Transformer Ratio / Class / Burden","ตามแบบ"],
+            ["5.2","Pilot Lamp L1/L2/L3 สีขาว","Spec ข้อ 12.2"],
+            ["5.3","Fuse Spare อย่างน้อย 10%","Spec ข้อ 12.3"]
+        ]
+    },
+    {
+        title:"Section 6 : ทดสอบการทำงาน (Function Test)",
+        icon:"fa-gears",
+        critical:false,
+        items:[
+            ["6.1","ทดสอบ Alarm, Status, Trip และ Interlock","FAT Procedure"],
+            ["6.2","ทดสอบ Meter V/I/Watt/Var/VA/PF","FAT Procedure"],
+            ["6.3","ทดสอบ Test Trip MCCB","FAT Procedure"],
+            ["6.4","ทดสอบ Trip Unit ของ ACB","FAT Procedure"]
+        ]
+    },
+    {
+        title:"Section 7 : การทดสอบไฟฟ้า (Electrical Testing)",
+        icon:"fa-triangle-exclamation",
+        critical:true,
+        items:[
+            ["7.1","Dielectric Test 2000VAC 1 นาที","IEC 61439-1"],
+            ["7.2","Insulation Resistance Test 1000VDC","IEC 61439-1"],
+            ["7.3","Ground Continuity Test ≤ 0.1 Ohm","IEC 60335-1"],
+            ["7.4","Contact Resistance Test","Manufacturer Standard"]
+        ]
+    }
 ];
 
 const container = document.getElementById("checklistContainer");
+let fullHtml = ""; // สร้างตัวแปรเก็บ HTML ทั้งหมดเพื่อประสิทธิภาพในการ Render หลังจบลูป
 
 sections.forEach((section, sIndex)=>{
+    let html = `
+    <div class="section-card bg-white rounded-2xl shadow-md overflow-hidden mb-6">
+        <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-4">
+            <div class="flex items-center justify-between">
+                <h2 class="font-bold text-lg md:text-xl flex items-center gap-3">
+                    <div class="bg-white text-gray-700 w-10 h-10 rounded-lg flex items-center justify-center shadow">
+                        <i class="fa-solid ${section.icon}"></i>
+                    </div>
+                    ${section.title}
+                </h2>
+                ${section.critical ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold">CRITICAL TEST</span>' : ''}
+            </div>
+        </div>
+        <div class="p-4">
+            <div class="hidden md:grid md:grid-cols-12 gap-3 font-semibold text-gray-700 border-b pb-3 mb-3">
+                <div class="col-span-1">Item</div>
+                <div class="col-span-6">Description</div>
+                <div class="col-span-2">Reference</div>
+                <div class="col-span-3">Result</div>
+            </div>
+    `;
 
-let html = `
-<div class="section-card bg-white rounded-2xl shadow-md overflow-hidden mb-6">
-
-    <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-4">
-
-        <div class="flex items-center justify-between">
-
-            <h2 class="font-bold text-lg md:text-xl flex items-center gap-3">
-
-                <div class="bg-white text-gray-700 w-10 h-10 rounded-lg flex items-center justify-center shadow">
-
-                    <i class="fa-solid ${section.icon}"></i>
-
+    section.items.forEach((item, i)=>{
+        const radioName = `section${sIndex}_item${i}`;
+        html += `
+        <div class="check-item border rounded-xl p-4 mb-3 bg-gray-50">
+            <div class="grid md:grid-cols-12 gap-3 items-center">
+                <div class="md:col-span-1">
+                    <span class="font-bold">${item[0]}</span>
                 </div>
-
-                ${section.title}
-
-            </h2>
-            ${
-                section.critical
-                ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold">CRITICAL TEST</span>'
-                : ''
-            }
-
-        </div>
-
-    </div>
-
-    <div class="p-4">
-
-        <div class="hidden md:grid md:grid-cols-12 gap-3 font-semibold text-gray-700 border-b pb-3 mb-3">
-            <div class="col-span-1">Item</div>
-            <div class="col-span-6">Description</div>
-            <div class="col-span-2">Reference</div>
-            <div class="col-span-3">Result</div>
-        </div>
-`;
-
-section.items.forEach((item,i)=>{
-
-const radioName = `section${sIndex}_item${i}`;
-
-html += `
-<div class="check-item border rounded-xl p-4 mb-3 bg-gray-50">
-
-    <div class="grid md:grid-cols-12 gap-3 items-center">
-
-        <div class="md:col-span-1">
-            <span class="font-bold">${item[0]}</span>
-        </div>
-
-        <div class="md:col-span-6">
-            <div class="font-medium">${item[1]}</div>
-        </div>
-
-        <div class="md:col-span-2">
-            <span class="text-sm text-gray-600">${item[2]}</span>
-        </div>
-
-        <div class="md:col-span-3">
-
-            <div class="flex gap-2">
-
-                <label class="radio-card pass-option border rounded-lg px-3 py-2 cursor-pointer flex-1 text-center">
-                    <input type="radio"
-                           name="${radioName}"
-                           value="Pass"
-                           class="hidden">
-                    <i class="fa-solid fa-circle-check"></i>
-                    ผ่าน
-                </label>
-
-                <label class="radio-card fail-option border rounded-lg px-3 py-2 cursor-pointer flex-1 text-center">
-                    <input type="radio"
-                           name="${radioName}"
-                           value="Fail"
-                           class="hidden">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                    ไม่ผ่าน
-                </label>
-
+                <div class="md:col-span-6">
+                    <div class="font-medium">${item[1]}</div>
+                </div>
+                <div class="md:col-span-2">
+                    <span class="text-sm text-gray-600">${item[2]}</span>
+                </div>
+                <div class="md:col-span-3">
+                    <div class="flex gap-2">
+                        <label class="radio-card pass-option border rounded-lg px-3 py-2 cursor-pointer flex-1 text-center bg-white">
+                            <input type="radio" name="${radioName}" value="Pass" class="hidden">
+                            <i class="fa-solid fa-circle-check"></i> ผ่าน
+                        </label>
+                        <label class="radio-card fail-option border rounded-lg px-3 py-2 cursor-pointer flex-1 text-center bg-white">
+                            <input type="radio" name="${radioName}" value="Fail" class="hidden">
+                            <i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน
+                        </label>
+                    </div>
+                </div>
             </div>
 
+            <div class="remarks-container mt-3 pt-3 border-t border-gray-200">
+                <label class="block text-xs font-medium text-gray-500 mb-1">หมายเหตุ (Remarks)</label>
+                <textarea class="remarks-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all" 
+                          rows="1" 
+                          placeholder="ระบุข้อมูลเพิ่มเติมถ้ามี... (เช่น ค่าทดสอบจริงที่วัดได้)"></textarea>
+            </div>
         </div>
+        `;
+    });
 
+    html += `
+        </div>
     </div>
-
-</div>
-`;
-
+    `;
+    fullHtml += html;
 });
 
-html += `
-    </div>
-</div>
-`;
+// อัปเดต DOM เพียงครั้งเดียวอยู่นอกลูป เพื่อประสิทธิภาพ (ลด Reflow/Repaint)
+container.innerHTML = fullHtml;
 
-container.innerHTML += html;
-
-});
-
-// Radio Button Styling
+// Radio Button Styling และการดักจับเพื่อปรับเปลี่ยนสี UI
 document.addEventListener("change",(e)=>{
-
     if(e.target.type === "radio"){
-
         const group = document.querySelectorAll(`input[name="${e.target.name}"]`);
-
         group.forEach(radio=>{
-
             const label = radio.closest("label");
-
-            label.classList.remove("pass-selected");
-            label.classList.remove("fail-selected");
-
+            label.classList.remove("pass-selected", "fail-selected");
         });
 
         const selectedLabel = e.target.closest("label");
-
         if(e.target.value === "Pass"){
             selectedLabel.classList.add("pass-selected");
         }else{
@@ -446,52 +383,30 @@ document.addEventListener("change",(e)=>{
     }
 });
 
-// Printn
+// ฟังก์ชันสำหรับพิมพ์ (Print / Save as PDF)
 function printChecklist(){
-    
-    document.querySelectorAll(".remarks-input")
-    .forEach(textarea=>{
-
+    // ปรับขนาดความสูงของ textarea ทั้งหมดให้พอดีกับข้อความก่อนทำการสั่งพิมพ์
+    document.querySelectorAll(".remarks-input").forEach(textarea=>{
         textarea.style.height = "auto";
         textarea.style.height = textarea.scrollHeight + "px";
-
     });
     
-    const printBtn =
-        document.getElementById("printBtn");
-
-    const clearBtn =
-        document.getElementById("clearBtn");
-
-    printBtn.style.display = "none";
-    clearBtn.style.display = "none";
-
+    // เรียกคำสั่งพิมพ์ของ Browser (ส่วนการซ่อนปุ่ม ใช้ CSS @media print ควบคุมแทน ปลอดภัยกว่าการตั้งเวลาใน JS)
     window.print();
-
-    setTimeout(()=>{
-
-        printBtn.style.display = "block";
-        clearBtn.style.display = "block";
-
-    },1000);
 }
+
+// ฟังก์ชันล้างข้อมูลทั้งหมด
 function clearChecklist(){
-
     if(confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")){
-
-        localStorage.removeItem(
-            "mdb_fat_checklist"
-        );
-
+        localStorage.removeItem("mdb_fat_checklist");
         location.reload();
     }
 }
-// =====================
-// Auto Save to LocalStorage
-// =====================
 
+// =====================
+// Auto Save & Load to LocalStorage
+// =====================
 function saveData(){
-
     const data = {
         referenceSpec : document.getElementById("referenceSpec")?.value || "",
         revisionDate : document.getElementById("revisionDate")?.value || "",
@@ -501,83 +416,59 @@ function saveData(){
         radios : {}
     };
 
+    // บันทึกค่าจาก Remarks ทุกช่องลง Array
     document.querySelectorAll(".remarks-input").forEach(input=>{
         data.remarks.push(input.value);
     });
 
+    // บันทึกค่าสถานะวิทยุ (Radio Buttons)
     document.querySelectorAll('input[type="radio"]:checked').forEach(radio=>{
         data.radios[radio.name] = radio.value;
     });
 
-    localStorage.setItem(
-        "mdb_fat_checklist",
-        JSON.stringify(data)
-    );
+    localStorage.setItem("mdb_fat_checklist", JSON.stringify(data));
 }
 
-document.addEventListener("input",saveData);
+// ดักจับ Event เพื่อบันทึกข้อมูลแบบเรียลไทม์ (Auto Save)
+document.addEventListener("input", saveData);
+document.addEventListener("change", saveData);
 
-document.addEventListener("change",saveData);
-
+// ทำระบบ Auto-resize สำหรับ Textarea เมื่อผู้ใช้กรอกข้อมูลเพิ่มขึ้น
 document.addEventListener("input",(e)=>{
-
     if(e.target.classList.contains("remarks-input")){
-
         e.target.style.height = "auto";
         e.target.style.height = e.target.scrollHeight + "px";
-
     }
-
 });
 
+// โหลดข้อมูลเก่าที่เคยบันทึกไว้เมื่อเปิดหน้าเว็บขึ้นมาใหม่
 window.addEventListener("load",()=>{
-
-    const saved =
-        localStorage.getItem("mdb_fat_checklist");
-
+    const saved = localStorage.getItem("mdb_fat_checklist");
     if(!saved) return;
 
     const data = JSON.parse(saved);
-        document.getElementById("referenceSpec").value =
-        data.referenceSpec || "BQD-3042";
+    
+    if(document.getElementById("referenceSpec")) document.getElementById("referenceSpec").value = data.referenceSpec || "BQD-3042";
+    if(document.getElementById("revisionDate")) document.getElementById("revisionDate").value = data.revisionDate || "";
+    if(document.getElementById("projectNo")) document.getElementById("projectNo").value = data.projectNo || "";
+    if(document.getElementById("inspectorName")) document.getElementById("inspectorName").value = data.inspector || "";
 
-        document.getElementById("revisionDate").value =
-        data.revisionDate || "";
-
-        document.getElementById("projectNo").value =
-        data.projectNo || "";
-
-    if(document.getElementById("inspectorName")){
-        document.getElementById("inspectorName").value =
-            data.inspector || "";
-    }
-
-    document.querySelectorAll(".remarks-input")
-    .forEach((input,index)=>{
-
-        if(data.remarks[index] !== undefined){
+    // คืนค่าให้กับช่อง Remarks (เรียงตามลำดับ Index ของ DOM)
+    document.querySelectorAll(".remarks-input").forEach((input, index)=>{
+        if(data.remarks && data.remarks[index] !== undefined){
             input.value = data.remarks[index];
         }
-        
+        // ปรับความสูงของช่องให้พอดีข้อมูลที่ดึงขึ้นมาทันที
         input.style.height = "auto";
         input.style.height = input.scrollHeight + "px";
-
     });
 
+    // คืนค่าปุ่มเลือก (Pass/Fail) พร้อมใส่สีไฮไลต์ให้ถูกต้อง
     Object.keys(data.radios || {}).forEach(name=>{
-
-        const radio =
-            document.querySelector(
-                `input[name="${name}"][value="${data.radios[name]}"]`
-            );
-
+        const radio = document.querySelector(`input[name="${name}"][value="${data.radios[name]}"]`);
         if(radio){
-
             radio.checked = true;
-
-            const label =
-                radio.closest("label");
-
+            const label = radio.closest("label");
             if(radio.value === "Pass"){
                 label.classList.add("pass-selected");
             }else{
@@ -585,9 +476,7 @@ window.addEventListener("load",()=>{
             }
         }
     });
-
 });
-
 </script>
 
 </body>
