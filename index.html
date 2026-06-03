@@ -69,6 +69,11 @@
             z-index:999;
         }
 
+        @page{
+            size:A4 portrait;
+            margin:10mm;
+        }
+
         @media print {
 
             body{
@@ -86,6 +91,10 @@
             }
 
             .section-card{
+                overflow:visible !important;
+            }
+
+            .check-item{
                 break-inside:avoid;
                 page-break-inside:avoid;
             }
@@ -94,7 +103,13 @@
             textarea{
                 border:none !important;
             }
+
+            textarea{
+                height:auto !important;
+                overflow:visible !important;
+                white-space:pre-wrap !important;
         }
+    }
     </style>
 </head>
 <body class="min-h-screen">
@@ -341,7 +356,7 @@ section.items.forEach((item,i)=>{
 const radioName = `section${sIndex}_item${i}`;
 
 html += `
-<div class="border rounded-xl p-4 mb-3 bg-gray-50">
+<div class="check-item border rounded-xl p-4 mb-3 bg-gray-50">
 
     <div class="grid md:grid-cols-12 gap-3 items-center">
 
@@ -384,9 +399,11 @@ html += `
         </div>
 
         <div class="md:col-span-2">
-            <input type="text"
-                   placeholder="Remarks"
-                   class="remarks-input w-full border rounded-lg px-2 py-2">
+            <textarea
+                placeholder="Remarks"
+                rows="2"
+                class="remarks-input w-full border rounded-lg px-2 py-2 resize-none">
+            </textarea>
         </div>
 
     </div>
@@ -495,6 +512,17 @@ function saveData(){
 document.addEventListener("input",saveData);
 
 document.addEventListener("change",saveData);
+
+document.addEventListener("input",(e)=>{
+
+    if(e.target.classList.contains("remarks-input")){
+
+        e.target.style.height = "auto";
+        e.target.style.height = e.target.scrollHeight + "px";
+
+    }
+
+});
 
 window.addEventListener("load",()=>{
 
