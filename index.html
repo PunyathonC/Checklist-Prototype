@@ -75,7 +75,8 @@
                 background:white !important;
             }
 
-            .floating-print{
+            .floating-print,
+            .floating-clear{
                 display:none !important;
             }
 
@@ -127,6 +128,7 @@
                 <div>
                     <label class="text-sm text-gray-500">Reference Spec</label>
                     <input type="text"
+                           id="referenceSpec"
                            value="BQD-3042"
                            class="w-full mt-1 border rounded-lg px-3 py-2 bg-gray-50">
                 </div>
@@ -134,12 +136,14 @@
                 <div>
                     <label class="text-sm text-gray-500">Revision Date</label>
                     <input type="date"
+                           id="revisionDate"
                            class="w-full mt-1 border rounded-lg px-3 py-2">
                 </div>
 
                 <div>
                     <label class="text-sm text-gray-500">Project / MDB No.</label>
                     <input type="text"
+                           id="projectNo"
                            placeholder="Enter MDB Information"
                            class="w-full mt-1 border rounded-lg px-3 py-2">
                 </div>
@@ -167,6 +171,7 @@
                     ผู้ตรวจสอบ (Inspector Name)
                 </label>
                 <input type="text"
+                       id="inspectorName"
                        class="w-full border rounded-lg px-3 py-2"
                        placeholder="ชื่อผู้ตรวจสอบ">
             </div>
@@ -184,6 +189,17 @@
 
     <i class="fa-solid fa-print mr-2"></i>
     Print / Save as PDF
+
+</button>
+
+<!-- Clear Data Button -->
+<button
+        id="clearBtn"
+        onclick="clearChecklist()"
+        class="floating-clear fixed bottom-24 right-5 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-full shadow-lg font-semibold">
+
+    <i class="fa-solid fa-trash mr-2"></i>
+    Clear Data
 
 </button>
 
@@ -370,7 +386,7 @@ html += `
         <div class="md:col-span-2">
             <input type="text"
                    placeholder="Remarks"
-                   class="w-full border rounded-lg px-2 py-2">
+                   class="remarks-input w-full border rounded-lg px-2 py-2">
         </div>
 
     </div>
@@ -415,19 +431,125 @@ document.addEventListener("change",(e)=>{
     }
 });
 
-// Print
+// Printn
 function printChecklist(){
 
-    const btn = document.getElementById("printBtn");
+    const printBtn =
+        document.getElementById("printBtn");
 
-    btn.style.display = "none";
+    const clearBtn =
+        document.getElementById("clearBtn");
+
+    printBtn.style.display = "none";
+    clearBtn.style.display = "none";
 
     window.print();
 
     setTimeout(()=>{
-        btn.style.display = "block";
+
+        printBtn.style.display = "block";
+        clearBtn.style.display = "block";
+
     },1000);
 }
+function clearChecklist(){
+
+    if(confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")){
+
+        localStorage.removeItem(
+            "mdb_fat_checklist"
+        );
+
+        location.reload();
+    }
+}
+// =====================
+// Auto Save to LocalStorage
+// =====================
+
+function saveData(){
+
+    const data = {
+        referenceSpec : document.getElementById("referenceSpec")?.value || "",
+        revisionDate : document.getElementById("revisionDate")?.value || "",
+        projectNo : document.getElementById("projectNo")?.value || "",
+        inspector : document.getElementById("inspectorName")?.value || "",
+        remarks : [],
+        radios : {}
+    };
+
+    document.querySelectorAll(".remarks-input").forEach(input=>{
+        data.remarks.push(input.value);
+    });
+
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio=>{
+        data.radios[radio.name] = radio.value;
+    });
+
+    localStorage.setItem(
+        "mdb_fat_checklist",
+        JSON.stringify(data)
+    );
+}
+
+document.addEventListener("input",saveData);
+
+document.addEventListener("change",saveData);
+
+window.addEventListener("load",()=>{
+
+    const saved =
+        localStorage.getItem("mdb_fat_checklist");
+
+    if(!saved) return;
+
+    const data = JSON.parse(saved);
+        document.getElementById("referenceSpec").value =
+        data.referenceSpec || "BQD-3042";
+
+        document.getElementById("revisionDate").value =
+        data.revisionDate || "";
+
+        document.getElementById("projectNo").value =
+        data.projectNo || "";
+
+    if(document.getElementById("inspectorName")){
+        document.getElementById("inspectorName").value =
+            data.inspector || "";
+    }
+
+    document.querySelectorAll(".remarks-input")
+    .forEach((input,index)=>{
+
+        if(data.remarks[index] !== undefined){
+            input.value = data.remarks[index];
+        }
+
+    });
+
+    Object.keys(data.radios || {}).forEach(name=>{
+
+        const radio =
+            document.querySelector(
+                `input[name="${name}"][value="${data.radios[name]}"]`
+            );
+
+        if(radio){
+
+            radio.checked = true;
+
+            const label =
+                radio.closest("label");
+
+            if(radio.value === "Pass"){
+                label.classList.add("pass-selected");
+            }else{
+                label.classList.add("fail-selected");
+            }
+        }
+    });
+
+});
 
 </script>
 
