@@ -92,6 +92,13 @@
 
             .section-card{
                 overflow:visible !important;
+                page-break-before: always;
+                break-before: page;
+                overflow: visible !important;
+            }
+            .section-card:first-child{
+                page-break-before: auto;
+                break-before: auto;
             }
 
             .check-item{
