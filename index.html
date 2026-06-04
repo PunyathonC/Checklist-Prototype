@@ -22,7 +22,6 @@
         .fail-selected{ background:#fee2e2 !important; border-color:#ef4444 !important; color:#b91c1c !important; font-weight:600; }
         .floating-print{ position:fixed; bottom:20px; right:20px; z-index:999; }
         
-        /* ซ่อน Print Footer บนหน้าจอเว็บปกติ */
         .print-footer { display: none; }
 
         @page{ size:A4 portrait; margin:10mm; }
@@ -31,24 +30,52 @@
             body{ background:white !important; }
             .floating-print, .floating-clear{ display:none !important; }
             .shadow-md, .shadow-lg{ box-shadow:none !important; }
-            .section-card{ overflow:visible !important; page-break-before: always; break-before: page; }
             
-            /* ลบคำสั่งกัน Page Break หน้าแรกออก เพื่อให้ข้อ 1 ขึ้นหน้าใหม่เสมอ */
+            /* ---- ปรับปรุงใหม่: ย่อขนาด เล็กลง และไหลต่อกัน ---- */
             
+            /* 1. ยกเลิกการตัดขึ้นหน้าใหม่ของแต่ละ Section ให้ไหลต่อเนื่องกันประหยัดกระดาษ */
+            .section-card {
+                overflow: visible !important; 
+                page-break-before: auto !important; 
+                break-before: auto !important;
+                margin-bottom: 12px !important;
+                border: 1px solid #ddd !important;
+            }
+            
+            /* 2. ลดขนาดตัวอักษรและช่องไฟทั้งหมด */
+            body, p, span, div, label, input, textarea { 
+                font-size: 11px !important; 
+                line-height: 1.4 !important; 
+            }
+            h1.text-2xl, h1.text-3xl { font-size: 16px !important; }
+            h2.text-xl { font-size: 13px !important; padding: 6px !important; margin-bottom: 6px !important; }
+            
+            /* 3. ลด Padding/Margin ให้กระชับขึ้นสุดๆ */
+            .p-4, .p-6 { padding: 10px !important; }
+            .mb-6 { margin-bottom: 10px !important; }
+            .check-item { padding: 6px 10px !important; margin-bottom: 4px !important; border: 1px solid #eee !important;}
+            .gap-4 { gap: 8px !important; }
+            
+            /* 4. ซ่อนไอคอนสายฟ้าบน Header เพื่อประหยัดพื้นที่กระดาษ */
+            .w-24.h-24 { display: none !important; }
+            
+            /* ---------------------------------------------------- */
+
             .print-page-break { page-break-before: always !important; break-before: page !important; }
-            .check-item{ break-inside:avoid; page-break-inside:avoid; }
+            .check-item { break-inside:avoid; page-break-inside:avoid; }
             
             input, textarea{ background:transparent !important; padding:0 !important; }
             input[type="text"], input[type="date"] { border: none !important; border-bottom: 1px dotted #aaa !important; border-radius: 0 !important; }
             textarea{ border: 1px solid #ddd !important; height:auto !important; overflow:visible !important; white-space:pre-wrap !important; }
             
-            /* ตั้งค่าให้ชื่อผู้ตรวจสอบแสดงที่มุมขวาล่าง และทำซ้ำทุกหน้า */
+            .remarks-container { border-top: 1px dashed #ccc !important; margin-top: 4px !important; padding-top: 4px !important; }
+            
             .print-footer {
                 display: block !important;
                 position: fixed;
                 bottom: 0;
                 right: 0;
-                font-size: 14px;
+                font-size: 12px;
                 font-weight: 600;
                 color: #333;
                 background: white;
@@ -128,7 +155,7 @@
 </button>
 
 <script>
-// ใช้ข้อมูลชุดที่สั้นและกระชับตามที่ตกลงกันไว้
+// --- อัปเดตข้อมูลโครงสร้าง ยุบข้อ 3 รวมกับข้อ 2 แล้วขยับตัวเลข ---
 const sections = [
     {
         title:"Section 1 : การตรวจสอบโครงสร้างและตู้ (Enclosure & Structure)",
@@ -145,66 +172,59 @@ const sections = [
         ]
     },
     {
-        title:"Section 2 : บัสบาร์และตัวนำ (Busbar & Conductors)",
+        title:"Section 2 : บัสบาร์, ตัวนำ และเซอร์กิตเบรกเกอร์ (Busbar & Breaker)",
         icon:"fa-network-wired",
         critical:false,
         items:[
             ["2.1","ตรวจสอบขนาด Line และ Neutral Busbar","Spec ข้อ 10.3<br>IEC 61439-1"],
             ["2.2","ตรวจสอบขนาด Ground Busbar","Spec ข้อ 10"],
             ["2.3","สาย Bonding ระหว่าง Neutral Busbar และ Ground Busbar (ถ้ามี)","ตามแบบ"],
-            ["2.4","ตรวจสอบความถูกต้องของสี Busbar แต่ละเฟส","Spec ข้อ 10.7"]
+            ["2.4","ตรวจสอบความถูกต้องของสี Busbar แต่ละเฟส","Spec ข้อ 10.7"],
+            ["2.5","ตรวจสอบ CB ตามแบบ (ยี่ห้อ, รุ่น, Rating, Pole, Ics, Icu)","ตามแบบ"] // ย้ายข้อเบรกเกอร์มาใส่ตรงนี้
         ]
     },
     {
-        title:"Section 3 : เซอร์กิตเบรกเกอร์ (Circuit Breaker)",
-        icon:"fa-bolt",
-        critical:false,
-        items:[
-            ["3.1","ตรวจสอบ CB ตามแบบ (ยี่ห้อ, รุ่น, Rating, Pole, Ics, Icu)","ตามแบบ"]
-        ]
-    },
-    {
-        title:"Section 4 : สายไฟและการเดินสาย (Cable & Wiring)",
+        title:"Section 3 : สายไฟและการเดินสาย (Cable & Wiring)",
         icon:"fa-plug",
         critical:false,
         items:[
-            ["4.1","สายควบคุมเป็นชนิด IEC 08 (HVSF)","Spec ข้อ 11.1"],
-            ["4.2","ขนาดสายควบคุม 2.5 ตร.มม.","Spec ข้อ 11.1"],
-            ["4.3","สาย Ground บานประตู (ใช้สายทองแดงถัก 10 ตร.มม.)","Spec ข้อ 11.1"],
-            ["4.4","Wire mark สายควบคุม (ชนิดปลอกสวม ระบุต้นทางและปลายทาง)","Spec ข้อ 11.5"],
-            ["4.5","ตรวจสอบความถูกต้องของสีสายไฟฟ้าแต่ละวงจร","Spec ข้อ 10.6"]
+            ["3.1","สายควบคุมเป็นชนิด IEC 08 (HVSF)","Spec ข้อ 11.1"],
+            ["3.2","ขนาดสายควบคุม 2.5 ตร.มม.","Spec ข้อ 11.1"],
+            ["3.3","สาย Ground บานประตู (ใช้สายทองแดงถัก 10 ตร.มม.)","Spec ข้อ 11.1"],
+            ["3.4","Wire mark สายควบคุม (ชนิดปลอกสวม ระบุต้นทางและปลายทาง)","Spec ข้อ 11.5"],
+            ["3.5","ตรวจสอบความถูกต้องของสีสายไฟฟ้าแต่ละวงจร","Spec ข้อ 10.6"]
         ]
     },
     {
-        title:"Section 5 : อุปกรณ์เครื่องวัด (Current transformer, Lamp, Digital meter)",
+        title:"Section 4 : อุปกรณ์เครื่องวัด (Current transformer, Lamp, Digital meter)",
         icon:"fa-gauge-high",
         critical:false,
         items:[
-            ["5.1","Current Transformer (ตรวจสอบ Ratio, Class, Burden)","ตามแบบ"],
-            ["5.2","Pilot lamp L1/L2/L3 ใช้สีขาว","Spec ข้อ 12.2"],
-            ["5.3","Fuse (ถ้ามี) จัดหาสำรอง 10% ของทั้งหมด","Spec ข้อ 12.3"]
+            ["4.1","Current Transformer (ตรวจสอบ Ratio, Class, Burden)","ตามแบบ"],
+            ["4.2","Pilot lamp L1/L2/L3 ใช้สีขาว","Spec ข้อ 12.2"],
+            ["4.3","Fuse (ถ้ามี) จัดหาสำรอง 10% ของทั้งหมด","Spec ข้อ 12.3"]
         ]
     },
     {
-        title:"Section 6 : ทดสอบการทำงาน (Function test)",
+        title:"Section 5 : ทดสอบการทำงาน (Function test)",
         icon:"fa-gears",
         critical:false,
         items:[
-            ["6.1","ทดสอบการทำงานของวงจรควบคุม (Alarm, status, trip, interlock, …)",""],
-            ["6.2","ทดสอบการทำงานของ Meter (V/I/Watt/Var/VA/p.f.)",""],
-            ["6.3","ทดสอบ Test trip ของ MCCB",""],
-            ["6.4","ทดสอบ Trip unit ของ ACB",""]
+            ["5.1","ทดสอบการทำงานของวงจรควบคุม (Alarm, status, trip, interlock, …)",""],
+            ["5.2","ทดสอบการทำงานของ Meter (V/I/Watt/Var/VA/p.f.)",""],
+            ["5.3","ทดสอบ Test trip ของ MCCB",""],
+            ["5.4","ทดสอบ Trip unit ของ ACB",""]
         ]
     },
     {
-        title:"Section 7 : การทดสอบไฟฟ้า (Electrical Testing)",
+        title:"Section 6 : การทดสอบไฟฟ้า (Electrical Testing)",
         icon:"fa-triangle-exclamation",
         critical:true,
         items:[
-            ["7.1","Dielectric test ด้วยแรงดัน 2000VAC เป็นเวลา 1 นาที<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ : ไม่ Breakdown*</span>","IEC 61439-1"],
-            ["7.2","Insulation Resistance Test ด้วยแรงดัน 1000VDC 1 นาที<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ ≥ 1 MegaOhm*</span>","IEC 61439-1"],
-            ["7.3","Ground Continuity Test<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ ≤ 0.1 Ohm*</span>","IEC 60335-1"],
-            ["7.4","ทดสอบ Contact resistance<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ : ตาม datasheet ของ CB*</span>",""]
+            ["6.1","Dielectric test ด้วยแรงดัน 2000VAC เป็นเวลา 1 นาที<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ : ไม่ Breakdown*</span>","IEC 61439-1"],
+            ["6.2","Insulation Resistance Test ด้วยแรงดัน 1000VDC 1 นาที<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ ≥ 1 MegaOhm*</span>","IEC 61439-1"],
+            ["6.3","Ground Continuity Test<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ ≤ 0.1 Ohm*</span>","IEC 60335-1"],
+            ["6.4","ทดสอบ Contact resistance<br><span class='text-mea-orange font-medium mt-1 inline-block'>*ค่าที่ยอมรับได้ : ตาม datasheet ของ CB*</span>",""]
         ]
     }
 ];
@@ -293,7 +313,6 @@ function printChecklist(){
         textarea.style.height = textarea.scrollHeight + "px";
     });
     
-    // อัปเดตชื่อผู้ตรวจสอบไปยังกล่อง Footer ก่อนพิมพ์
     const inspectorName = document.getElementById("inspectorName").value.trim();
     document.getElementById("displayInspectorName").innerText = inspectorName || "...................................................";
     
