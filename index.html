@@ -176,6 +176,16 @@
 
     <div class="bg-white rounded-2xl shadow-lg p-6 mt-8">
         <h2 class="text-xl font-bold mb-4 mea-text">
+            <i class="fa-solid fa-clipboard-list mr-2"></i>
+            สรุปผลการประเมิน (Summary Report)
+        </h2>
+        <div id="summaryContent" class="p-4 bg-gray-50 rounded-xl border">
+            <p class="text-gray-500 text-center">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 mt-8">
+        <h2 class="text-xl font-bold mb-4 mea-text">
             <i class="fa-solid fa-user-check mr-2"></i>
             สรุปการตรวจสอบ
         </h2>
@@ -400,7 +410,87 @@ function clearChecklist(){
         location.reload();
     }
 }
+// === แทรกฟังก์ชัน updateSummary ตรงนี้ครับ ===
+function updateSummary() {
+    const items = document.querySelectorAll('.check-item');
+    let passCount = 0;
+    let failList = [];
+    let pendingCount = 0;
 
+    items.forEach((itemDom) => {
+        const itemNumber = itemDom.querySelector('.font-bold').innerText;
+        const itemDesc = itemDom.querySelector('.font-medium').innerHTML.split('<br>')[0]; 
+        const checkedRadio = itemDom.querySelector('input[type="radio"]:checked');
+        const remark = itemDom.querySelector('.remarks-input').value.trim();
+
+        if (!checkedRadio) {
+            pendingCount++;
+        } else if (checkedRadio.value === 'Pass') {
+            passCount++;
+        } else if (checkedRadio.value === 'Fail') {
+            failList.push({
+                title: `${itemNumber} ${itemDesc}`,
+                remark: remark || '<span class="text-gray-400 italic">ไม่ได้ระบุหมายเหตุ</span>'
+            });
+        }
+    });
+
+    const summaryContainer = document.getElementById('summaryContent');
+    if (items.length === 0) return;
+
+    if (pendingCount === items.length) {
+        summaryContainer.innerHTML = `<p class="text-gray-500 text-center">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>`;
+        return;
+    }
+
+    let html = '';
+
+    if (failList.length === 0 && pendingCount === 0) {
+        html = `
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-4 rounded-lg flex items-center shadow-sm">
+                <i class="fa-solid fa-circle-check text-3xl mr-4"></i>
+                <div>
+                    <p class="font-bold text-lg">ผ่านเกณฑ์ทั้งหมด (All Passed)</p>
+                    <p class="text-sm mt-1">การตรวจสอบสมบูรณ์แบบ ไม่มีข้อบกพร่อง</p>
+                </div>
+            </div>
+        `;
+    } else {
+        if (failList.length > 0) {
+            html += `
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm">
+                <i class="fa-solid fa-circle-xmark text-2xl mr-3"></i>
+                <p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p>
+            </div>
+            <div class="space-y-3">
+            `;
+            
+            failList.forEach(fail => {
+                html += `
+                <div class="bg-white border border-red-200 p-4 rounded-lg shadow-sm break-inside-avoid">
+                    <p class="font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p>
+                    <div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border">
+                        <span class="font-semibold">หมายเหตุ:</span> ${fail.remark}
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+        } else {
+             html += `
+             <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-3 flex items-center shadow-sm">
+                <i class="fa-solid fa-info-circle text-2xl mr-3"></i>
+                <p class="font-bold text-lg">ผ่านเกณฑ์แล้ว ${passCount} ข้อ (ยังไม่พบข้อบกพร่อง)</p>
+            </div>`;
+        }
+
+        if (pendingCount > 0) {
+            html += `<p class="text-sm text-orange-600 mt-4 font-medium"><i class="fa-solid fa-clock mr-1"></i> * ยังมีรายการที่รอการตรวจสอบอีก ${pendingCount} ข้อ</p>`;
+        }
+    }
+
+    summaryContainer.innerHTML = html;
+}
+// === จบฟังก์ชัน updateSummary ===
 // =====================
 // Auto Save & Load to LocalStorage
 // =====================
@@ -425,6 +515,7 @@ function saveData(){
     });
 
     localStorage.setItem("mdb_fat_checklist", JSON.stringify(data));
+    updateSummary(); 
 }
 
 // ดักจับ Event เพื่อบันทึกข้อมูลแบบเรียลไทม์ (Auto Save)
@@ -474,6 +565,7 @@ window.addEventListener("load",()=>{
             }
         }
     });
+    updateSummary();
 });
 </script>
 
