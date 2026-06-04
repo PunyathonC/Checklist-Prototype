@@ -51,8 +51,7 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
-            /* iOS Fix: ห้ามใช้ page-break-inside: avoid กับ tr ตรงๆ เพราะจะทำให้หน้าสรุปหายบน WebKit */
-            .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
+            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
             
             .print-page-break {
                 page-break-before: always !important;
@@ -97,7 +96,7 @@
     <tbody>
         <tr>
             <td class="pb-6 pt-4 px-4 md:px-0">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden relative z-10">
                     <div class="mea-bg text-white p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
@@ -133,9 +132,9 @@
     <tbody id="checklistBody"></tbody>
 
     <tbody>
-        <tr class="print-page-break">
+        <tr>
             <td class="pt-6 pb-4 px-4 md:px-0">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <div class="print-page-break bg-white rounded-2xl shadow-lg border border-gray-200 p-6 relative z-10">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3">
                         <i class="fa-solid fa-clipboard-check mr-2"></i>
                         สรุปการตรวจสอบ (Summary Report)
@@ -279,13 +278,11 @@ const checklistBody = document.getElementById("checklistBody");
 let fullHtml = ""; 
 
 sections.forEach((section, sIndex)=>{
-    // iOS Fix: สั่งตัดหน้ากระดาษที่ระดับ TR แทนระดับ Div ด้านในเพื่อให้ระบบ WebKit เรนเดอร์หน้าได้เสถียร
-    const shouldPageBreak = sIndex > 0 && sIndex !== 2;
-    
+    // บั๊ก iOS/Browser Fix: ใส่ คลาส print-page-break ที่ตัวการ์ด Div เพื่อสั่งตัดหน้าสำหรับ Section 2 เป็นต้นไป
     fullHtml += `
-    <tr class="${shouldPageBreak ? 'print-page-break' : ''}">
+    <tr>
         <td class="pb-3 pt-4 px-4 md:px-0">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="${sIndex > 0 ? 'print-page-break' : ''} bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-4">
                     <div class="flex items-center justify-between">
                         <h2 class="font-bold text-lg flex items-center gap-3 m-0">
@@ -306,7 +303,7 @@ sections.forEach((section, sIndex)=>{
         fullHtml += `
         <tr>
             <td class="pb-3 px-4 md:px-0">
-                <div class="check-item bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div class="check-item bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative z-10">
                     <div class="grid md:grid-cols-12 gap-3 items-start">
                         <div class="md:col-span-1"><span class="font-bold text-lg">${item[0]}</span></div>
                         <div class="md:col-span-6"><div class="font-medium text-gray-800">${item[1].replace(/\n/g, '<br>')}</div></div>
@@ -576,7 +573,7 @@ function printChecklist(){
         textarea.style.height = textarea.scrollHeight + "px";
     });
     
-    updateCurrentTime(); 
+    updateCurrentTime(); // อัปเดตเวลาก่อนพิมพ์เสมอ
     
     setTimeout(() => {
         window.print();
@@ -621,16 +618,16 @@ function updateSummary() {
 
     let html = '';
     if (failList.length === 0 && pendingCount === 0) {
-        html = `<div class="bg-green-50 border border-green-300 text-green-700 px-4 py-4 rounded-lg flex items-center shadow-sm"><i class="fa-solid fa-circle-check text-3xl mr-4"></i><div><p class="font-bold text-lg">ผ่านเกณฑ์ทั้งหมด (All Passed)</p><p class="text-sm mt-1">การตรวจสอบสมบูรณ์แบบ ไม่มีข้อบกพร่อง</p></div></div>`;
+        html = `<div class="bg-green-50 border border-green-300 text-green-700 px-4 py-4 rounded-lg flex items-center shadow-sm relative z-10"><i class="fa-solid fa-circle-check text-3xl mr-4"></i><div><p class="font-bold text-lg">ผ่านเกณฑ์ทั้งหมด (All Passed)</p><p class="text-sm mt-1">การตรวจสอบสมบูรณ์แบบ ไม่มีข้อบกพร่อง</p></div></div>`;
     } else {
         if (failList.length > 0) {
-            html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
+            html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm relative z-10"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
             failList.forEach(fail => {
                 html += `<div class="bg-white border border-red-200 p-4 rounded-lg shadow-sm"><p class="font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold">หมายเหตุ:</span> ${fail.remark}</div></div>`;
             });
             html += `</div>`;
         } else {
-             html += `<div class="bg-blue-50 border border-blue-300 text-blue-700 px-4 py-3 rounded-lg mb-3 flex items-center shadow-sm"><i class="fa-solid fa-info-circle text-2xl mr-3"></i><p class="font-bold text-lg">ผ่านเกณฑ์แล้ว ${passCount} ข้อ (ยังไม่พบข้อบกพร่อง)</p></div>`;
+             html += `<div class="bg-blue-50 border border-blue-300 text-blue-700 px-4 py-3 rounded-lg mb-3 flex items-center shadow-sm relative z-10"><i class="fa-solid fa-info-circle text-2xl mr-3"></i><p class="font-bold text-lg">ผ่านเกณฑ์แล้ว ${passCount} ข้อ (ยังไม่พบข้อบกพร่อง)</p></div>`;
         }
         if (pendingCount > 0) html += `<p class="text-sm text-orange-600 mt-4 font-medium"><i class="fa-solid fa-clock mr-1"></i> * ยังมีรายการที่รอการตรวจสอบอีก ${pendingCount} ข้อ</p>`;
     }
@@ -663,6 +660,7 @@ document.addEventListener("input",(e)=>{
 });
 
 window.addEventListener("load",()=>{
+    // แสดงเวลาเริ่มต้นทันทีที่โหลดหน้า
     updateCurrentTime();
     
     const saved = localStorage.getItem("mdb_fat_checklist");
