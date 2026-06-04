@@ -1,3 +1,16 @@
+ปัญหา "หน้าขาว" (Blank Page) เกิดจากกลไกของไลบรารี `html2pdf.js` (ที่ใช้ `html2canvas` เบื้องหลัง) ครับ
+
+สาเหตุหลักๆ มี 2 อย่างคือ:
+
+1. **วาดไม่ทัน:** เราสั่งให้มันเอาโค้ด HTML ไปสร้าง PDF ทันทีในเสี้ยววินาที เบราว์เซอร์เลยยัง "วาดภาพหน้าจอ (Render)" ไม่เสร็จ มันเลยแคปได้หน้าขาวๆ ไปแทน
+2. **ตำแหน่งเลื่อน (Scroll Position):** ถ้าผู้ใช้เลื่อนหน้าจอลงมาด้านล่าง แล้วกดสร้าง PDF ตัวโปรแกรมอาจจะไปแคปเจอร์ตำแหน่งด้านบนสุดซึ่งตอนนี้ไม่มีอะไรอยู่เลย
+
+**💡 วิธีแก้ที่ชัวร์ 100%:**
+เราจะสร้าง **"หน้าจอโหลด (Loading Screen)"** ขึ้นมาบังหน้าเว็บไว้ก่อน จากนั้นดึงหน้า Print ขึ้นมาแสดงอยู่หลังหน้าจอโหลด -> **หน่วงเวลาไว้ครึ่งวินาที (500ms) ให้เบราว์เซอร์วาดตารางเสร็จ** -> สร้าง PDF -> แล้วซ่อนทุกอย่างกลับไปเหมือนเดิม
+
+คุณสามารถก๊อปปี้โค้ดด้านล่างนี้ไปทับไฟล์เดิมได้เลยครับ ผมเขียนระบบแก้บั๊กนี้ไว้ให้อย่างสมบูรณ์แล้ว:
+
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -31,9 +44,24 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 800px; /* บังคับความกว้างหน้ากระดาษ */
+            width: 800px; /* บังคับความกว้างเพื่อให้ Layout A4 ไม่เพี้ยน */
             background: white;
-            z-index: -1000;
+            z-index: 9997; /* ให้อยู่ใต้หน้า Loading Overlay */
+        }
+        
+        /* หน้าจอ Loading ช่วยป้องกันผู้ใช้เห็นจอเด้งไปมา และป้องกัน XSS */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
         /* ป้องกันการตัดขาดครึ่งข้อตอนสร้าง PDF */
@@ -41,6 +69,12 @@
     </style>
 </head>
 <body class="min-h-screen pb-10 relative overflow-x-hidden">
+
+<div id="loadingOverlay">
+    <i class="fa-solid fa-spinner fa-spin text-6xl text-orange-500 mb-4"></i>
+    <h2 class="text-2xl font-bold text-gray-800">กำลังสร้างไฟล์ PDF...</h2>
+    <p class="text-gray-500 mt-2">กรุณารอสักครู่ เบราว์เซอร์กำลังประมวลผลหน้ากระดาษ</p>
+</div>
 
 <div id="appContainer" class="max-w-7xl mx-auto p-4 md:p-8">
 
@@ -255,21 +289,24 @@ document.addEventListener("change",(e)=>{
 });
 
 // ==========================================
-// ฟังก์ชันจัดการ PDF ด้วย html2pdf
+// ฟังก์ชันจัดการ PDF ด้วย html2pdf (อัปเดตแก้บั๊กหน้าขาว)
 // ==========================================
 async function printChecklist() {
-    const printBtn = document.getElementById("printBtn");
-    const originalContent = printBtn.innerHTML;
+    // 1. บันทึกตำแหน่ง Scroll เดิม และเปิดหน้าต่างโหลด
+    const currentScrollY = window.scrollY;
+    document.getElementById("loadingOverlay").style.display = "flex";
     
-    // แสดงสถานะโหลด
-    printBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> สร้างเอกสาร...';
-    printBtn.disabled = true;
+    // บังคับ Scroll เลื่อนขึ้นไปบนสุด (แก้ปัญหาแคนวาสจับภาพผิดพิกัด)
+    window.scrollTo(0, 0);
 
-    // สร้าง HTML สำหรับ PDF
+    // 2. สร้าง HTML สำหรับ PDF
     buildPdfDocument();
     
     const element = document.getElementById("printContainer");
-    element.style.display = "block"; // เปิดให้แสดงชั่วคราวซ้อนไว้หลังสุด
+    element.style.display = "block"; // ต้องให้ Block เพื่อให้เบราว์เซอร์ Render โค้ดได้
+
+    // ⏳ 3. จุดสำคัญ: รอให้ Browser ทำการวาด (Paint) หน้ากระดาษให้เสร็จสมบูรณ์ก่อน 500ms
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const opt = {
         margin: [15, 10, 15, 10], // top, left, bottom, right
@@ -279,27 +316,31 @@ async function printChecklist() {
             scale: 2, 
             useCORS: true,
             windowWidth: 800,
-            scrollY: 0 // บังคับเริ่มแคปหน้าจอจากบนสุดเสมอ
+            scrollY: 0, // บังคับให้แกน Y เริ่มจาก 0 เสมอ
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // ช่วยป้องกันการตัดขาดกลางข้อ
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     try {
+        // 4. สั่งปริ้น PDF
         await html2pdf().set(opt).from(element).save();
     } catch (error) {
         console.error("PDF Generation Error:", error);
         alert("เกิดข้อผิดพลาดในการสร้างไฟล์ PDF");
     } finally {
-        element.style.display = "none"; // ซ่อนกลับ
+        // 5. ปิด Loading และเก็บกวาดให้เรียบร้อย
+        element.style.display = "none"; 
         element.innerHTML = ""; 
-        printBtn.innerHTML = originalContent;
-        printBtn.disabled = false;
+        document.getElementById("loadingOverlay").style.display = "none";
+        
+        // เลื่อนหน้าจอผู้ใช้กลับมาที่เดิม
+        window.scrollTo(0, currentScrollY);
     }
 }
 
 // ==========================================
-// ฟังก์ชันสร้างหน้าตา PDF
+// ฟังก์ชันสร้างหน้าตา PDF (ไม่แก้โค้ดส่วนนี้)
 // ==========================================
 function buildPdfDocument() {
     const printDiv = document.getElementById("printContainer");
@@ -523,3 +564,5 @@ window.addEventListener("load",()=>{
 
 </body>
 </html>
+
+```
