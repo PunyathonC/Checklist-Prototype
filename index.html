@@ -140,6 +140,17 @@
                         สรุปการตรวจสอบ (Summary Report)
                     </h2>
                     
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-4 bg-orange-50/50 p-3 rounded-lg border border-orange-100">
+                        <div class="text-sm">
+                            <span class="font-semibold text-gray-600">Project / MDB No:</span> 
+                            <span class="displaySummaryProject text-mea-orange font-bold text-base ml-1">-</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-semibold text-gray-600">วันที่ประเมิน:</span> 
+                            <span class="displayTimestamp text-mea-orange font-bold ml-1">-</span>
+                        </div>
+                    </div>
+                    
                     <div id="summaryContent" class="p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p class="text-gray-500 text-center">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
                     </div>
@@ -339,13 +350,29 @@ document.addEventListener("change",(e)=>{
     }
 });
 
+// อัปเดตชื่อผู้ตรวจสอบแบบ Real-time
 document.getElementById("inspectorName").addEventListener("input", function(e) {
     const val = e.target.value.trim() || ".........................................";
     document.querySelectorAll(".displayInspectorName").forEach(el => el.innerText = val);
 });
 
+// อัปเดต Project No ในหน้าสรุปผลแบบ Real-time
+document.getElementById("projectNo").addEventListener("input", function(e) {
+    const val = e.target.value.trim() || "-";
+    document.querySelectorAll(".displaySummaryProject").forEach(el => el.innerText = val);
+});
+
+// ฟังก์ชันอัปเดตเวลาปัจจุบัน
+function updateCurrentTime() {
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+    const formattedTime = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    const timeStr = `${formattedDate} เวลา ${formattedTime} น.`;
+    document.querySelectorAll(".displayTimestamp").forEach(el => el.innerText = timeStr);
+}
+
 // =====================================
-// ฟังก์ชันสร้างไฟล์ Excel ด้วย ExcelJS (อัปเดตระบบดาวน์โหลดให้เสถียร)
+// ฟังก์ชันสร้างไฟล์ Excel ด้วย ExcelJS
 // =====================================
 async function exportToExcelJS() {
     if (typeof ExcelJS === 'undefined') {
@@ -368,16 +395,10 @@ async function exportToExcelJS() {
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet('FAT_Checklist');
 
-        // ตั้งค่าความกว้างคอลัมน์
         sheet.columns = [
-            { width: 8 },  // A: ข้อ
-            { width: 55 },  // B: รายละเอียด
-            { width: 25 },  // C: อ้างอิง
-            { width: 15 },  // D: ผลการประเมิน
-            { width: 45 }   // E: หมายเหตุ
+            { width: 8 }, { width: 55 }, { width: 25 }, { width: 15 }, { width: 45 }
         ];
 
-        // 1. หัวตารางใหญ่
         sheet.mergeCells('A1:E1');
         const titleCell = sheet.getCell('A1');
         titleCell.value = 'MDB Factory Acceptance Test (FAT) Checklist';
@@ -386,7 +407,6 @@ async function exportToExcelJS() {
         titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
         sheet.getRow(1).height = 35;
 
-        // 2. ข้อมูลโครงการ
         sheet.getCell('A3').value = 'Reference Spec:';
         sheet.getCell('A3').font = { bold: true };
         sheet.getCell('B3').value = refSpec;
@@ -408,7 +428,6 @@ async function exportToExcelJS() {
         sheet.getRow(3).height = 20;
         sheet.getRow(4).height = 20;
 
-        // 3. หัวตารางย่อย
         const headerRow = sheet.addRow(['ข้อ', 'รายการตรวจสอบ', 'มาตรฐานอ้างอิง', 'ผลการตรวจสอบ', 'หมายเหตุ']);
         headerRow.height = 25;
         headerRow.eachCell((cell) => {
@@ -418,12 +437,10 @@ async function exportToExcelJS() {
             cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
         });
 
-        // ตัวแปรสำหรับเก็บค่า Summary
         let passCount = 0;
         let failList = [];
         let pendingCount = 0;
 
-        // 4. วนลูปสร้างข้อมูล
         let remarkInputs = document.querySelectorAll(".remarks-input");
         let inputIndex = 0;
 
@@ -442,7 +459,6 @@ async function exportToExcelJS() {
                 const radioEl = document.querySelector(`input[name="${radioName}"]:checked`);
                 let resultText = "-";
                 let resultColor = 'FF000000';
-                
                 const remarkText = remarkInputs[inputIndex].value.trim() || "";
                 
                 if (radioEl) {
@@ -460,28 +476,19 @@ async function exportToExcelJS() {
                 }
                 
                 const row = sheet.addRow([ item[0], item[1], item[2], resultText, remarkText ]);
-                
                 row.eachCell((cell, colNum) => {
                     cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                     cell.alignment = { vertical: 'top', wrapText: true };
-                    
-                    if (colNum === 1 || colNum === 3 || colNum === 4) {
-                        cell.alignment = { ...cell.alignment, horizontal: 'center' };
-                    }
+                    if (colNum === 1 || colNum === 3 || colNum === 4) cell.alignment = { ...cell.alignment, horizontal: 'center' };
                     if (colNum === 1) cell.font = { bold: true };
-                    
-                    if (colNum === 4 && resultText !== "-") {
-                        cell.font = { color: { argb: resultColor }, bold: true };
-                    }
+                    if (colNum === 4 && resultText !== "-") cell.font = { color: { argb: resultColor }, bold: true };
                 });
 
                 inputIndex++;
             });
         });
 
-        // 5. เพิ่มการคำนวณและแสดงผลหน้า Summary ลงใน Excel
-        sheet.addRow([]); // เว้นบรรทัด
-        
+        sheet.addRow([]);
         const sumHeaderRow = sheet.addRow(['สรุปการตรวจสอบ (Summary Report)']);
         sheet.mergeCells(`A${sumHeaderRow.number}:E${sumHeaderRow.number}`);
         sumHeaderRow.getCell(1).font = { size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -514,7 +521,6 @@ async function exportToExcelJS() {
                 sheet.mergeCells(`A${r.number}:E${r.number}`);
                 r.getCell(1).font = { bold: true, color: { argb: 'FF1D4ED8' } }; 
             }
-            
             if (pendingCount > 0) {
                 const r = sheet.addRow([`* ยังมีรายการที่รอการตรวจสอบอีก ${pendingCount} ข้อ`]);
                 sheet.mergeCells(`A${r.number}:E${r.number}`);
@@ -522,7 +528,6 @@ async function exportToExcelJS() {
             }
         }
 
-        // ลายเซ็นต์ใน Excel
         sheet.addRow([]);
         sheet.addRow([]);
         const sigRow1 = sheet.addRow(['', '', '', 'ลงชื่อผู้ตรวจสอบ ..............................................................']);
@@ -532,15 +537,13 @@ async function exportToExcelJS() {
         sigRow1.getCell(4).alignment = { horizontal: 'right' };
         sigRow2.getCell(4).alignment = { horizontal: 'center' };
 
-        // 6. สร้างและดาวน์โหลดไฟล์ (แก้ไขให้ดาวน์โหลดตรงๆ ไม่ใช้ Share API)
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         
         let fileProjName = projNo && projNo !== "-" ? projNo : 'Report';
-        fileProjName = fileProjName.replace(/[/\\?%*:|"<>]/g, '-'); // ป้องกันตัวอักษรที่ห้ามใช้เป็นชื่อไฟล์
+        fileProjName = fileProjName.replace(/[/\\?%*:|"<>]/g, '-'); 
         const fileName = `FAT_MDB_Checklist_${fileProjName}.xlsx`;
 
-        // บังคับดาวน์โหลดผ่าน a tag โดยตรง
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -549,7 +552,6 @@ async function exportToExcelJS() {
         document.body.appendChild(a);
         a.click();
         
-        // ล้างหน่วยความจำหลังจากดาวน์โหลด
         setTimeout(() => {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
@@ -564,23 +566,13 @@ async function exportToExcelJS() {
     }
 }
 
-// =====================================
-// สั่งพิมพ์
-// =====================================
 function printChecklist(){
     document.querySelectorAll(".remarks-input").forEach(textarea=>{
         textarea.style.height = "auto";
         textarea.style.height = textarea.scrollHeight + "px";
     });
     
-    const inspectorName = document.getElementById("inspectorName").value.trim() || ".........................................";
-    document.querySelectorAll(".displayInspectorName").forEach(el => el.innerText = inspectorName);
-    
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
-    const formattedTime = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-    const timeStr = `${formattedDate} เวลา ${formattedTime} น.`;
-    document.querySelectorAll(".displayTimestamp").forEach(el => el.innerText = timeStr);
+    updateCurrentTime(); // อัปเดตเวลาก่อนพิมพ์เสมอ
     
     setTimeout(() => {
         window.print();
@@ -667,12 +659,19 @@ document.addEventListener("input",(e)=>{
 });
 
 window.addEventListener("load",()=>{
+    // แสดงเวลาเริ่มต้นทันทีที่โหลดหน้า
+    updateCurrentTime();
+    
     const saved = localStorage.getItem("mdb_fat_checklist");
     if(!saved) return;
     const data = JSON.parse(saved);
     
     if(document.getElementById("referenceSpec")) document.getElementById("referenceSpec").value = data.referenceSpec || "";
-    if(document.getElementById("projectNo")) document.getElementById("projectNo").value = data.projectNo || "";
+    if(document.getElementById("projectNo")) {
+        const projNo = data.projectNo || "";
+        document.getElementById("projectNo").value = projNo;
+        document.querySelectorAll(".displaySummaryProject").forEach(el => el.innerText = projNo || "-");
+    }
     if(document.getElementById("inspectorName")) {
         const inspector = data.inspector || "";
         document.getElementById("inspectorName").value = inspector;
