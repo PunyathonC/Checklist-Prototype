@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -25,14 +26,15 @@
         .floating-print{ position:fixed; bottom:20px; right:20px; z-index:999; }
         .floating-clear{ position:fixed; bottom:90px; right:20px; z-index:999; }
 
-        /* Off-screen container สำหรับสร้าง PDF เท่านั้น */
+        /* Container สำหรับสร้าง PDF เท่านั้น */
         #printContainer {
+            display: none;
             position: absolute;
-            left: -9999px;
             top: 0;
-            width: 800px; /* บังคับความกว้างเพื่อให้ Layout จัดเรียงสวยงามเหมือนจอ Desktop */
+            left: 0;
+            width: 800px; /* บังคับความกว้างหน้ากระดาษ */
             background: white;
-            z-index: -1;
+            z-index: -1000;
         }
         
         /* ป้องกันการตัดขาดครึ่งข้อตอนสร้าง PDF */
@@ -268,12 +270,18 @@ async function printChecklist() {
     buildPdfDocument();
     
     const element = document.getElementById("printContainer");
+    element.style.display = "block"; // เปิดให้แสดงชั่วคราวซ้อนไว้หลังสุด
 
     const opt = {
         margin: [15, 10, 15, 10], // top, left, bottom, right
         filename: `FAT_MDB_Checklist_${new Date().getTime()}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true,
+            windowWidth: 800,
+            scrollY: 0 // บังคับเริ่มแคปหน้าจอจากบนสุดเสมอ
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // ช่วยป้องกันการตัดขาดกลางข้อ
     };
@@ -284,10 +292,10 @@ async function printChecklist() {
         console.error("PDF Generation Error:", error);
         alert("เกิดข้อผิดพลาดในการสร้างไฟล์ PDF");
     } finally {
+        element.style.display = "none"; // ซ่อนกลับ
+        element.innerHTML = ""; 
         printBtn.innerHTML = originalContent;
         printBtn.disabled = false;
-        // ล้างข้อมูล Print Container หลังสร้างเสร็จเพื่อประหยัด Memory
-        element.innerHTML = ""; 
     }
 }
 
