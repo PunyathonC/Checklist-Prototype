@@ -51,7 +51,8 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
-            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+            /* iOS Fix: ห้ามใช้ page-break-inside: avoid กับ tr ตรงๆ เพราะจะทำให้หน้าสรุปหายบน WebKit */
+            .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
             
             .print-page-break {
                 page-break-before: always !important;
@@ -75,6 +76,89 @@
             h2.text-xl { font-size: 14px !important; margin-bottom: 8px !important; }
             .p-4 { padding: 12px !important; }
             .p-6 { padding: 16px !important; }
+
+            /* ปรับแต่งปุ่ม ผ่าน/ไม่ผ่าน ในหน้าจอ Print */
+            .print-radio-container {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+            }
+            .print-radio-box {
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                padding: 4px 12px;
+                font-size: 11px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                color: #6b7280;
+                background-color: #f9fafb;
+            }
+            .print-radio-box i { font-size: 10px; }
+            
+            .print-radio-box.print-pass {
+                background-color: #dcfce7 !important;
+                border-color: #22c55e !important;
+                color: #15803d !important;
+                font-weight: bold;
+            }
+            .print-radio-box.print-fail {
+                background-color: #fee2e2 !important;
+                border-color: #ef4444 !important;
+                color: #b91c1c !important;
+                font-weight: bold;
+            }
+            .print-radio-box.inactive {
+                opacity: 0.5; /* ทำให้ตัวที่ไม่ได้เลือกดูจางลง */
+            }
+        }
+
+        /* ซ่อน Print Layout ในหน้าจอปกติ */
+        @media screen {
+            .print-layout { display: none; }
+        }
+        /* ซ่อน Screen Layout ในหน้าจอ Print */
+        @media print {
+            .screen-layout { display: none; }
+            .print-layout { display: flex; }
+            
+            .check-item {
+                border: none !important;
+                border-bottom: 1px solid #e5e7eb !important;
+                border-radius: 0 !important;
+                padding: 12px 0 !important;
+                box-shadow: none !important;
+            }
+            
+            .grid { display: flex !important; width: 100%; justify-content: space-between; align-items: center; }
+            .md\:col-span-1 { width: 8%; flex-shrink: 0; }
+            .md\:col-span-6 { width: 52%; flex-grow: 1; padding-right: 10px; }
+            .md\:col-span-2 { width: 20%; flex-shrink: 0; font-size: 10px !important;}
+            .md\:col-span-3 { width: 20%; flex-shrink: 0; display: flex; justify-content: flex-end;}
+            
+            .remarks-container {
+                margin-top: 8px !important;
+                padding-top: 8px !important;
+                border-top: 1px dashed #e5e7eb !important;
+                width: 100%;
+            }
+            .remarks-container textarea {
+                color: #4b5563;
+                font-style: italic;
+            }
+            
+            /* ปรับแต่งหัวข้อ Section ใน Print */
+            .section-header, .critical-header {
+                padding: 8px 12px !important;
+                border-radius: 8px !important;
+                margin-top: 16px !important;
+            }
+            .section-header h2, .critical-header h2 {
+                font-size: 13px !important;
+            }
+            .bg-white.text-gray-700.w-8.h-8 {
+                width: 20px !important; height: 20px !important;
+            }
         }
     </style>
 </head>
@@ -96,7 +180,7 @@
     <tbody>
         <tr>
             <td class="pb-6 pt-4 px-4 md:px-0">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden relative z-10">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                     <div class="mea-bg text-white p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
@@ -132,15 +216,15 @@
     <tbody id="checklistBody"></tbody>
 
     <tbody>
-        <tr>
+        <tr class="print-page-break">
             <td class="pt-6 pb-4 px-4 md:px-0">
-                <div class="print-page-break bg-white rounded-2xl shadow-lg border border-gray-200 p-6 relative z-10">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3">
                         <i class="fa-solid fa-clipboard-check mr-2"></i>
                         สรุปการตรวจสอบ (Summary Report)
                     </h2>
                     
-                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-4 bg-orange-50/50 p-3 rounded-lg border border-orange-100">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-4 bg-orange-50/50 p-3 rounded-lg border border-orange-100 screen-layout" style="display: flex;">
                         <div class="text-sm">
                             <span class="font-semibold text-gray-600">Project / MDB No:</span> 
                             <span class="displaySummaryProject text-mea-orange font-bold text-base ml-1">-</span>
@@ -278,11 +362,13 @@ const checklistBody = document.getElementById("checklistBody");
 let fullHtml = ""; 
 
 sections.forEach((section, sIndex)=>{
-    // บั๊ก iOS/Browser Fix: ใส่ คลาส print-page-break ที่ตัวการ์ด Div เพื่อสั่งตัดหน้าสำหรับ Section 2 เป็นต้นไป
+    // iOS Fix: สั่งตัดหน้ากระดาษที่ระดับ TR แทนระดับ Div ด้านในเพื่อให้ระบบ WebKit เรนเดอร์หน้าได้เสถียร
+    const shouldPageBreak = sIndex > 0 && sIndex !== 2;
+    
     fullHtml += `
-    <tr>
+    <tr class="${shouldPageBreak ? 'print-page-break' : ''}">
         <td class="pb-3 pt-4 px-4 md:px-0">
-            <div class="${sIndex > 0 ? 'print-page-break' : ''} bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-4">
                     <div class="flex items-center justify-between">
                         <h2 class="font-bold text-lg flex items-center gap-3 m-0">
@@ -303,13 +389,13 @@ sections.forEach((section, sIndex)=>{
         fullHtml += `
         <tr>
             <td class="pb-3 px-4 md:px-0">
-                <div class="check-item bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative z-10">
+                <div class="check-item bg-white border border-gray-200 rounded-xl p-4 shadow-sm" data-radioname="${radioName}">
                     <div class="grid md:grid-cols-12 gap-3 items-start">
                         <div class="md:col-span-1"><span class="font-bold text-lg">${item[0]}</span></div>
                         <div class="md:col-span-6"><div class="font-medium text-gray-800">${item[1].replace(/\n/g, '<br>')}</div></div>
                         <div class="md:col-span-2"><span class="text-sm text-gray-500">${item[2].replace(/\n/g, '<br>')}</span></div>
                         
-                        <div class="md:col-span-3">
+                        <div class="md:col-span-3 screen-layout">
                             <div class="flex gap-2">
                                 <label class="radio-card pass-option border border-gray-300 rounded-lg px-3 py-2 cursor-pointer flex-1 text-center bg-gray-50 hover:bg-gray-100">
                                     <input type="radio" name="${radioName}" value="Pass" class="sr-only">
@@ -321,10 +407,18 @@ sections.forEach((section, sIndex)=>{
                                 </label>
                             </div>
                         </div>
+                        
+                        <div class="md:col-span-3 print-layout">
+                            <div class="print-radio-container" id="print_status_${radioName}">
+                                <div class="print-radio-box print-pass-box"><i class="fa-solid fa-circle-check"></i> ผ่าน</div>
+                                <div class="print-radio-box print-fail-box"><i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน</div>
+                            </div>
+                        </div>
+                        
                     </div>
                     
                     <div class="remarks-container mt-3 pt-3 border-t border-gray-100">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">หมายเหตุ (Remarks)</label>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider screen-layout" style="display:block;">หมายเหตุ (Remarks)</label>
                         <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
                                   rows="1" placeholder=""></textarea>
                     </div>
@@ -334,6 +428,35 @@ sections.forEach((section, sIndex)=>{
     });
 });
 checklistBody.innerHTML = fullHtml;
+
+// ฟังก์ชันอัปเดตสไตล์ของปุ่มในหน้า Print ให้ตรงกับที่เลือก
+function updatePrintRadios() {
+    const checkItems = document.querySelectorAll('.check-item');
+    checkItems.forEach(item => {
+        const radioName = item.getAttribute('data-radioname');
+        const checkedRadio = document.querySelector(`input[name="${radioName}"]:checked`);
+        const passBox = document.querySelector(`#print_status_${radioName} .print-pass-box`);
+        const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
+        
+        // Reset classes
+        passBox.classList.remove('print-pass', 'inactive');
+        failBox.classList.remove('print-fail', 'inactive');
+        
+        if (checkedRadio) {
+            if (checkedRadio.value === 'Pass') {
+                passBox.classList.add('print-pass');
+                failBox.classList.add('inactive');
+            } else {
+                failBox.classList.add('print-fail');
+                passBox.classList.add('inactive');
+            }
+        } else {
+            // ไม่ได้เลือกอะไรเลย
+            passBox.classList.add('inactive');
+            failBox.classList.add('inactive');
+        }
+    });
+}
 
 document.addEventListener("change",(e)=>{
     if(e.target.type === "radio"){
@@ -348,6 +471,7 @@ document.addEventListener("change",(e)=>{
         }else{
             selectedLabel.classList.add("fail-selected");
         }
+        updatePrintRadios(); // อัปเดตสไตล์สำหรับ Print ทันทีที่เปลี่ยนค่า
     }
 });
 
@@ -571,12 +695,25 @@ function printChecklist(){
     document.querySelectorAll(".remarks-input").forEach(textarea=>{
         textarea.style.height = "auto";
         textarea.style.height = textarea.scrollHeight + "px";
+        
+        // ถ้าช่องหมายเหตุว่างเปล่า ให้ใส่ค่าเว้นวรรคให้ตอน Print จะได้ไม่บีบแคบจนเกินไป
+        if(textarea.value.trim() === "") {
+            textarea.value = " ";
+        }
     });
     
-    updateCurrentTime(); // อัปเดตเวลาก่อนพิมพ์เสมอ
+    updatePrintRadios(); // แน่ใจว่าเรนเดอร์สีปุ่มถูกต้อง
+    updateCurrentTime(); 
     
     setTimeout(() => {
         window.print();
+        
+        // เคลียร์ค่าเว้นวรรคกลับมาว่างเหมือนเดิม
+        document.querySelectorAll(".remarks-input").forEach(textarea=>{
+            if(textarea.value === " ") {
+                textarea.value = "";
+            }
+        });
     }, 300);
 }
 
@@ -618,16 +755,19 @@ function updateSummary() {
 
     let html = '';
     if (failList.length === 0 && pendingCount === 0) {
-        html = `<div class="bg-green-50 border border-green-300 text-green-700 px-4 py-4 rounded-lg flex items-center shadow-sm relative z-10"><i class="fa-solid fa-circle-check text-3xl mr-4"></i><div><p class="font-bold text-lg">ผ่านเกณฑ์ทั้งหมด (All Passed)</p><p class="text-sm mt-1">การตรวจสอบสมบูรณ์แบบ ไม่มีข้อบกพร่อง</p></div></div>`;
+        // iOS Fix: นำ คลาส relative z-10 ออก
+        html = `<div class="bg-green-50 border border-green-300 text-green-700 px-4 py-4 rounded-lg flex items-center shadow-sm"><i class="fa-solid fa-circle-check text-3xl mr-4"></i><div><p class="font-bold text-lg">ผ่านเกณฑ์ทั้งหมด (All Passed)</p><p class="text-sm mt-1">การตรวจสอบสมบูรณ์แบบ ไม่มีข้อบกพร่อง</p></div></div>`;
     } else {
         if (failList.length > 0) {
-            html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm relative z-10"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
+            // iOS Fix: นำ คลาส relative z-10 ออก
+            html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
             failList.forEach(fail => {
                 html += `<div class="bg-white border border-red-200 p-4 rounded-lg shadow-sm"><p class="font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold">หมายเหตุ:</span> ${fail.remark}</div></div>`;
             });
             html += `</div>`;
         } else {
-             html += `<div class="bg-blue-50 border border-blue-300 text-blue-700 px-4 py-3 rounded-lg mb-3 flex items-center shadow-sm relative z-10"><i class="fa-solid fa-info-circle text-2xl mr-3"></i><p class="font-bold text-lg">ผ่านเกณฑ์แล้ว ${passCount} ข้อ (ยังไม่พบข้อบกพร่อง)</p></div>`;
+             // iOS Fix: นำ คลาส relative z-10 ออก
+             html += `<div class="bg-blue-50 border border-blue-300 text-blue-700 px-4 py-3 rounded-lg mb-3 flex items-center shadow-sm"><i class="fa-solid fa-info-circle text-2xl mr-3"></i><p class="font-bold text-lg">ผ่านเกณฑ์แล้ว ${passCount} ข้อ (ยังไม่พบข้อบกพร่อง)</p></div>`;
         }
         if (pendingCount > 0) html += `<p class="text-sm text-orange-600 mt-4 font-medium"><i class="fa-solid fa-clock mr-1"></i> * ยังมีรายการที่รอการตรวจสอบอีก ${pendingCount} ข้อ</p>`;
     }
@@ -660,7 +800,6 @@ document.addEventListener("input",(e)=>{
 });
 
 window.addEventListener("load",()=>{
-    // แสดงเวลาเริ่มต้นทันทีที่โหลดหน้า
     updateCurrentTime();
     
     const saved = localStorage.getItem("mdb_fat_checklist");
@@ -695,6 +834,7 @@ window.addEventListener("load",()=>{
         }
     });
     updateSummary();
+    updatePrintRadios(); // อัปเดตสไตล์สำหรับ Print ตั้งแต่เริ่ม
 });
 </script>
 
