@@ -23,7 +23,6 @@
         .pass-selected{ background:#dcfce7 !important; border-color:#22c55e !important; color:#15803d !important; font-weight:600; }
         .fail-selected{ background:#fee2e2 !important; border-color:#ef4444 !important; color:#b91c1c !important; font-weight:600; }
         
-        /* ปรับปรุง CSS ของปุ่มลอยสำหรับมือถือโดยเฉพาะ */
         .floating-buttons {
             position: fixed;
             bottom: 12px;
@@ -31,18 +30,17 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 6px; /* ลดช่องว่างระหว่างปุ่ม */
+            gap: 6px; 
             z-index: 99999;
-            opacity: 0.95; /* ทำให้ปุ่มโปร่งใสเล็กน้อยบนมือถือ */
+            opacity: 0.95; 
         }
         
-        /* สไตล์สำหรับ Tablet และ PC */
         @media (min-width: 768px) {
             .floating-buttons {
                 bottom: 24px;
                 right: 24px;
                 gap: 12px;
-                opacity: 1; /* กลับมาทึบ 100% บนจอใหญ่ */
+                opacity: 1; 
             }
         }
 
@@ -71,6 +69,14 @@
             
             .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
             .print-page-break { page-break-before: always !important; break-before: page !important; }
+            
+            /* บังคับส่วนสรุปผลให้ขึ้นหน้าใหม่เสมอ และห้ามตัดครึ่งกล่อง */
+            .summary-page-break { 
+                page-break-before: always !important; 
+                break-before: page !important; 
+                page-break-inside: avoid !important; 
+                break-inside: avoid !important; 
+            }
             
             td { padding-left: 0 !important; padding-right: 0 !important; }
             .mea-bg, .section-header { background-color: #F37021 !important; color: white !important; }
@@ -169,8 +175,9 @@
 
     <tbody id="checklistBody"></tbody>
 
-    <tbody>
-        <tr class="print-page-break">
+    <!-- บังคับส่วน Summary ขึ้นหน้าใหม่ด้วยคลาส summary-page-break -->
+    <tbody class="summary-page-break">
+        <tr>
             <td class="pt-6 pb-4 px-4 md:px-0">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3">
@@ -193,8 +200,7 @@
                     <div id="summaryContent" class="p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p class="text-gray-500 text-center">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
                     </div>
-                    
-                    </div>
+                </div>
             </td>
         </tr>
     </tbody>
@@ -355,6 +361,7 @@ sections.forEach((section, sIndex)=>{
                         <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
                                   rows="1" placeholder=""></textarea>
                         
+                        <!-- ระบบอัปโหลดรูปภาพ -->
                         <div class="photo-upload-container screen-layout mt-2">
                             <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
                             <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
@@ -370,6 +377,7 @@ sections.forEach((section, sIndex)=>{
 
                     </div>
 
+                    <!-- แสดงภาพในหน้า Print -->
                     <div class="print-layout mt-2 hidden print-photo-box">
                         <span class="text-[10px] font-bold text-gray-500 block mb-1">ภาพประกอบ:</span>
                         <img src="" class="print-img rounded border border-gray-300">
@@ -493,7 +501,6 @@ document.addEventListener("change",(e)=>{
 });
 
 document.getElementById("inspectorName").addEventListener("input", function(e) {
-    // ให้ชื่อผู้ตรวจสอบโชว์เป็น "ยังไม่ระบุชื่อ" ถ้าไม่ได้กรอกข้อมูล แทนการใช้จุดไข่ปลา
     const val = e.target.value.trim() || "(ยังไม่ระบุชื่อ)";
     document.querySelectorAll(".displayInspectorName").forEach(el => el.innerText = val);
 });
@@ -669,7 +676,6 @@ async function exportToExcelJS() {
             }
         }
 
-        // ลบช่องลายเซ็นใน Excel ออก
         const sigRow = sheet.addRow(['', '', '', `สรุปโดย Inspector: ${inspector}`]);
         sheet.mergeCells(`D${sigRow.number}:E${sigRow.number}`);
         sigRow.getCell(4).alignment = { horizontal: 'right' };
