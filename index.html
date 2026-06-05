@@ -23,6 +23,7 @@
         .pass-selected{ background:#dcfce7 !important; border-color:#22c55e !important; color:#15803d !important; font-weight:600; }
         .fail-selected{ background:#fee2e2 !important; border-color:#ef4444 !important; color:#b91c1c !important; font-weight:600; }
         
+        /* ปรับปรุง CSS ของปุ่มลอยสำหรับมือถือโดยเฉพาะ */
         .floating-buttons {
             position: fixed;
             bottom: 12px;
@@ -35,6 +36,7 @@
             opacity: 0.95; 
         }
         
+        /* สไตล์สำหรับ Tablet และ PC */
         @media (min-width: 768px) {
             .floating-buttons {
                 bottom: 24px;
@@ -70,12 +72,15 @@
             .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
             .print-page-break { page-break-before: always !important; break-before: page !important; }
             
-            /* บังคับส่วนสรุปผลให้ขึ้นหน้าใหม่เสมอ และห้ามตัดครึ่งกล่อง */
-            .summary-page-break { 
-                page-break-before: always !important; 
-                break-before: page !important; 
-                page-break-inside: avoid !important; 
-                break-inside: avoid !important; 
+            /* บังคับขึ้นหน้าใหม่สำหรับ iPad */
+            .force-page-break {
+                page-break-before: always !important;
+                break-before: page !important;
+                -webkit-break-before: always !important;
+            }
+            .avoid-break {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
             td { padding-left: 0 !important; padding-right: 0 !important; }
@@ -174,12 +179,28 @@
     </tbody>
 
     <tbody id="checklistBody"></tbody>
+</table>
 
-    <!-- บังคับส่วน Summary ขึ้นหน้าใหม่ด้วยคลาส summary-page-break -->
-    <tbody class="summary-page-break">
+<!-- คำสั่งบังคับขึ้นหน้าใหม่ 100% สำหรับหน้า Summary บน iPad -->
+<div class="force-page-break print-only block"></div>
+
+<!-- เริ่มตารางใหม่สำหรับ Summary เพื่อแก้ปัญหา iPad ฉีกหน้า -->
+<table class="main-table w-full max-w-5xl mx-auto force-page-break">
+    <!-- ใส่ Header กลับเข้ามาให้โชว์ในหน้า Summary เวลาปริ้นท์ด้วย -->
+    <thead class="print-header">
         <tr>
+            <td class="pb-4 pt-4 px-4 md:px-0">
+                <div class="flex justify-between items-center text-[11px] font-bold text-gray-500 border-b border-gray-300 pb-2">
+                    <span>วันที่ประเมิน: <span class="displayTimestamp text-gray-800"></span></span>
+                    <span>ผู้ตรวจสอบ: <span class="displayInspectorName text-gray-800"></span></span>
+                </div>
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="avoid-break">
             <td class="pt-6 pb-4 px-4 md:px-0">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 avoid-break">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3">
                         <i class="fa-solid fa-clipboard-check mr-2"></i>
                         สรุปการตรวจสอบ (Summary Report) 
