@@ -154,7 +154,6 @@
 </head>
 <body class="min-h-screen pb-10">
 
-<!-- ตารางแรกสำหรับหัวกระดาษและฟอร์มผู้ตรวจ -->
 <table class="main-table w-full max-w-5xl mx-auto">
     <thead class="print-header">
         <tr>
@@ -203,13 +202,10 @@
     </tbody>
 </table>
 
-<!-- คอนเทนเนอร์หลักที่จะให้ JavaScript ทำการวาดแต่ละ Section เป็นตารางใหม่แยกกัน -->
 <div id="checklistContainer"></div>
 
-<!-- ตัวตัดหน้ากระดาษก่อนขึ้นหน้า Summary -->
 <div class="safe-page-break print-only"></div>
 
-<!-- ตารางใหม่สำหรับ Summary Report -->
 <table class="main-table w-full max-w-5xl mx-auto mt-6 md:mt-0">
     <thead class="print-header">
         <tr>
@@ -348,13 +344,10 @@ const checklistContainer = document.getElementById("checklistContainer");
 let fullHtml = ""; 
 
 sections.forEach((section, sIndex) => {
-    // บังคับขึ้นหน้าใหม่ให้ทุก Section โดยใช้ div คั่นกลางเหมือนที่ใช้กับ Summary
-    // (ยกเว้น Section แรกสุดไม่ต้องขึ้นหน้าใหม่)
     if (sIndex > 0) {
         fullHtml += `<div class="safe-page-break print-only"></div>`;
     }
 
-    // สร้างตารางใหม่แยกขาดให้แต่ละ Section พร้อม Header วันที่
     fullHtml += `
     <table class="main-table w-full max-w-5xl mx-auto ${sIndex > 0 ? 'mt-6 md:mt-0' : 'mt-2 md:mt-4'}">
         <thead class="print-header">
@@ -423,7 +416,6 @@ sections.forEach((section, sIndex) => {
                             <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-1.5 md:py-2 text-xs md:text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
                                       rows="1" placeholder=""></textarea>
                             
-                            <!-- ระบบอัปโหลดรูปภาพ -->
                             <div class="photo-upload-container mt-2">
                                 <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
                                 <button type="button" class="text-[10px] md:text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
@@ -438,7 +430,6 @@ sections.forEach((section, sIndex) => {
                             </div>
                         </div>
 
-                        <!-- แสดงภาพ/Remark ในหน้า Print -->
                         <div class="print-layout remarks-container print-remarks-box hidden">
                             <span class="text-[10px] font-bold text-gray-500 block mb-0.5">หมายเหตุ: <span class="print-remark-text font-normal text-gray-700"></span></span>
                         </div>
@@ -452,7 +443,7 @@ sections.forEach((section, sIndex) => {
             </tr>`;
     });
     
-    fullHtml += `</tbody></table>`; // ปิดตารางของแต่ละ Section
+    fullHtml += `</tbody></table>`;
 });
 
 checklistContainer.innerHTML = fullHtml;
@@ -527,7 +518,6 @@ function updatePrintViews() {
         const radioName = item.getAttribute('data-radioname');
         if(!radioName) return;
 
-        // อัปเดตปุ่มผ่านไม่ผ่าน
         const checkedRadio = document.querySelector(`input[name="${radioName}"]:checked`);
         const passBox = document.querySelector(`#print_status_${radioName} .print-pass-box`);
         const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
@@ -550,7 +540,6 @@ function updatePrintViews() {
             }
         }
         
-        // อัปเดต Remark ตอน Print
         const remarkInput = item.querySelector('.remarks-input').value.trim();
         const printRemarkBox = item.querySelector('.print-remarks-box');
         const printRemarkText = item.querySelector('.print-remark-text');
@@ -793,7 +782,7 @@ async function exportToExcelJS() {
     } catch (error) {
         console.error("Export Error:", error);
         alert(`เกิดข้อผิดพลาดในการสร้างไฟล์ Excel: ${error.message || "Unknown error"}`);
-    } finally {
+    } catch {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
@@ -825,20 +814,37 @@ function updateSummary() {
     let failList = [];
     let pendingCount = 0;
 
-    items.forEach((itemDom) => {
-        const itemNumber = itemDom.querySelector('.font-bold').innerText;
-        const itemDesc = itemDom.querySelector('.font-medium').innerHTML.split('<br>')[0]; 
-        const checkedRadio = itemDom.querySelector('input[type="radio"]:checked');
-        const remarkRaw = itemDom.querySelector('.remarks-input').value.trim();
-        const remarkSafe = remarkRaw ? escapeHTML(remarkRaw) : '<span class="text-gray-400 italic">ไม่ได้ระบุหมายเหตุ</span>';
+    // แก้ไขระบบการดึงข้อมูลจากโครงสร้างอาเรย์โดยตรงเพื่อปิดช่องโหว่ DOM-based XSS ตัวเก่า
+    sections.forEach((section, sIndex) => {
+        section.items.forEach((item, i) => {
+            const radioName = `section${sIndex}_item${i}`;
+            const itemDom = document.querySelector(`.check-item[data-radioname="${radioName}"]`);
+            
+            if (!itemDom) return;
 
-        const photoInputId = `photo_${itemDom.getAttribute('data-radioname')}`;
-        const photoPreview = itemDom.querySelector(`#${photoInputId}`).closest('.photo-upload-container').querySelector('.preview-img').src;
-        const photoHtml = (photoPreview && photoPreview.startsWith('data:image')) ? `<div class="mt-2"><span class="text-[10px] font-bold text-gray-500 mb-1 block">ภาพประกอบ:</span><img src="${photoPreview}" class="h-20 w-auto max-w-full rounded border border-gray-300 object-contain bg-white"></div>` : '';
+            const checkedRadio = itemDom.querySelector('input[type="radio"]:checked');
+            const remarkRaw = itemDom.querySelector('.remarks-input').value.trim();
+            
+            const remarkSafe = remarkRaw ? escapeHTML(remarkRaw) : '<span class="text-gray-400 italic">ไม่ได้ระบุหมายเหตุ</span>';
+            const itemNumberSafe = escapeHTML(item[0]);
+            const itemDescSafe = escapeHTML(item[1].split('\n')[0]); 
 
-        if (!checkedRadio) pendingCount++;
-        else if (checkedRadio.value === 'Pass') passCount++;
-        else if (checkedRadio.value === 'Fail') failList.push({ title: `${itemNumber} ${itemDesc}`, remark: remarkSafe, photoHtml: photoHtml });
+            const photoInputId = `photo_${radioName}`;
+            const photoPreview = itemDom.querySelector(`#${photoInputId}`).closest('.photo-upload-container').querySelector('.preview-img').src;
+            const photoHtml = (photoPreview && photoPreview.startsWith('data:image')) ? `<div class="mt-2"><span class="text-[10px] font-bold text-gray-500 mb-1 block">ภาพประกอบ:</span><img src="${photoPreview}" class="h-20 w-auto max-w-full rounded border border-gray-300 object-contain bg-white"></div>` : '';
+
+            if (!checkedRadio) {
+                pendingCount++;
+            } else if (checkedRadio.value === 'Pass') {
+                passCount++;
+            } else if (checkedRadio.value === 'Fail') {
+                failList.push({ 
+                    title: `${itemNumberSafe} ${itemDescSafe}`, 
+                    remark: remarkSafe, 
+                    photoHtml: photoHtml 
+                });
+            }
+        });
     });
 
     const summaryContainer = document.getElementById('summaryContent');
@@ -879,7 +885,6 @@ function saveData(){
     document.querySelectorAll(".remarks-input").forEach(input=>{ data.remarks.push(input.value); });
     document.querySelectorAll('input[type="radio"]:checked').forEach(radio=>{ data.radios[radio.name] = radio.value; });
     
-    // บันทึกรูปภาพ (Base64)
     document.querySelectorAll(".photo-input").forEach(input => {
         const previewImg = input.closest('.photo-upload-container').querySelector('.preview-img');
         if(previewImg.src && previewImg.src.startsWith('data:image')) {
@@ -935,7 +940,6 @@ window.addEventListener("load",()=>{
         }
     });
 
-    // โหลดรูปภาพกลับมาแสดง
     Object.keys(data.photos || {}).forEach(id => {
         const input = document.getElementById(id);
         if(input) {
