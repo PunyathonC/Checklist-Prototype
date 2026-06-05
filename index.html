@@ -71,7 +71,6 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
-            /* ล็อกให้ไอเทมแต่ละข้อไม่โดนหั่นครึ่ง */
             .check-item-row {
                 page-break-inside: avoid !important; 
                 break-inside: avoid !important; 
@@ -82,10 +81,9 @@
                 page-break-inside: avoid !important; 
                 break-inside: avoid !important; 
                 -webkit-column-break-inside: avoid !important;
-                padding: 6px 0 !important; /* บีบช่องว่างให้กระชับขึ้น */
+                padding: 6px 0 !important; 
             }
 
-            /* ล็อกไม่ให้หัวข้อ Section ไปอยู่ท้ายกระดาษแบบเดี่ยวๆ */
             .section-header-row {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
@@ -93,7 +91,7 @@
                 break-after: avoid !important;
             }
             
-            /* บังคับขึ้นหน้าใหม่เฉพาะจุดที่จำเป็น (เช่น หน้า Summary) */
+            /* บังคับขึ้นหน้าใหม่ 100% สำหรับทุก Section และ Summary */
             .safe-page-break {
                 display: block !important;
                 page-break-before: always !important;
@@ -120,7 +118,6 @@
             textarea { border-bottom: 1px dashed #ddd !important; border-radius: 0 !important; height: auto !important; overflow: visible !important; margin-top: 2px !important; padding-top: 0 !important;}
             body, p, span, div, label, input, textarea { font-size: 11px !important; line-height: 1.3 !important; }
             
-            /* ย่อส่วนหัวกระดาษให้ประหยัดพื้นที่แนวตั้ง */
             h1.text-2xl, h1.text-3xl { font-size: 16px !important; margin: 0 !important;}
             p.text-orange-100 { margin-top: 0 !important; font-size: 10px !important;}
             h2.text-xl { font-size: 13px !important; margin-bottom: 4px !important; }
@@ -157,6 +154,7 @@
 </head>
 <body class="min-h-screen pb-10">
 
+<!-- ตารางแรกสำหรับหัวกระดาษและฟอร์มผู้ตรวจ -->
 <table class="main-table w-full max-w-5xl mx-auto">
     <thead class="print-header">
         <tr>
@@ -168,10 +166,9 @@
             </td>
         </tr>
     </thead>
-
     <tbody>
         <tr>
-            <td class="pb-4 pt-4 px-4 md:px-0">
+            <td class="pb-2 pt-4 px-4 md:px-0">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                     <div class="mea-bg text-white p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -204,12 +201,15 @@
             </td>
         </tr>
     </tbody>
-
-    <tbody id="checklistBody"></tbody>
 </table>
 
+<!-- คอนเทนเนอร์หลักที่จะให้ JavaScript ทำการวาดแต่ละ Section เป็นตารางใหม่แยกกัน -->
+<div id="checklistContainer"></div>
+
+<!-- ตัวตัดหน้ากระดาษก่อนขึ้นหน้า Summary -->
 <div class="safe-page-break print-only"></div>
 
+<!-- ตารางใหม่สำหรับ Summary Report -->
 <table class="main-table w-full max-w-5xl mx-auto mt-6 md:mt-0">
     <thead class="print-header">
         <tr>
@@ -243,7 +243,7 @@
                     </div>
                     
                     <div id="summaryContent" class="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <p class="text-gray-500 text-center">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
+                        <p class="text-gray-500 text-center text-sm">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
                     </div>
                 </div>
             </td>
@@ -344,96 +344,118 @@ const sections = [
     }
 ];
 
-const checklistBody = document.getElementById("checklistBody");
+const checklistContainer = document.getElementById("checklistContainer");
 let fullHtml = ""; 
 
-sections.forEach((section, sIndex)=>{
-    // เอาคำสั่งตัดหน้าทิ้ง ปล่อยให้ไหลต่อเนื่องกันแบบสวยๆ
-    fullHtml += `
-    <tr class="section-header-row">
-        <td class="pb-2 pt-2 px-4 md:px-0">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-3">
-                    <div class="flex items-center justify-between">
-                        <h2 class="font-bold text-lg flex items-center gap-3 m-0">
-                            <div class="bg-white text-gray-700 w-6 h-6 md:w-8 md:h-8 rounded flex items-center justify-center shadow-sm">
-                                <i class="fa-solid ${section.icon} text-xs md:text-sm"></i>
-                            </div>
-                            ${section.title}
-                        </h2>
-                        ${section.critical ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold">CRITICAL TEST</span>' : ''}
-                    </div>
-                </div>
-            </div>
-        </td>
-    </tr>`;
+sections.forEach((section, sIndex) => {
+    // บังคับขึ้นหน้าใหม่ให้ทุก Section โดยใช้ div คั่นกลางเหมือนที่ใช้กับ Summary
+    // (ยกเว้น Section แรกสุดไม่ต้องขึ้นหน้าใหม่)
+    if (sIndex > 0) {
+        fullHtml += `<div class="safe-page-break print-only"></div>`;
+    }
 
-    section.items.forEach((item, i)=>{
+    // สร้างตารางใหม่แยกขาดให้แต่ละ Section พร้อม Header วันที่
+    fullHtml += `
+    <table class="main-table w-full max-w-5xl mx-auto ${sIndex > 0 ? 'mt-6 md:mt-0' : 'mt-2 md:mt-4'}">
+        <thead class="print-header">
+            <tr>
+                <td class="pb-2 pt-2 px-4 md:px-0">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-gray-500 border-b border-gray-300 pb-1">
+                        <span>วันที่ประเมิน: <span class="displayTimestamp text-gray-800"></span></span>
+                        <span>ผู้ตรวจสอบ: <span class="displayInspectorName text-gray-800"></span></span>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="section-header-row">
+                <td class="pb-2 pt-2 px-4 md:px-0">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-3">
+                            <div class="flex items-center justify-between">
+                                <h2 class="font-bold text-lg flex items-center gap-3 m-0">
+                                    <div class="bg-white text-gray-700 w-6 h-6 md:w-8 md:h-8 rounded flex items-center justify-center shadow-sm">
+                                        <i class="fa-solid ${section.icon} text-xs md:text-sm"></i>
+                                    </div>
+                                    ${section.title}
+                                </h2>
+                                ${section.critical ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold">CRITICAL TEST</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>`;
+
+    section.items.forEach((item, i) => {
         const radioName = `section${sIndex}_item${i}`;
         fullHtml += `
-        <tr class="check-item-row">
-            <td class="pb-2 px-4 md:px-0">
-                <div class="check-item bg-white border border-gray-200 rounded-xl p-3 shadow-sm" data-radioname="${radioName}">
-                    <div class="grid md:grid-cols-12 gap-2 items-start">
-                        <div class="md:col-span-1"><span class="font-bold text-base md:text-lg">${item[0]}</span></div>
-                        <div class="md:col-span-6"><div class="font-medium text-gray-800 leading-snug">${item[1].replace(/\n/g, '<br>')}</div></div>
-                        <div class="md:col-span-2"><span class="text-xs text-gray-500 leading-snug">${item[2].replace(/\n/g, '<br>')}</span></div>
-                        
-                        <div class="md:col-span-3 screen-layout">
-                            <div class="flex gap-2">
-                                <label class="radio-card pass-option border border-gray-300 rounded-lg px-2 py-1.5 md:px-3 md:py-2 cursor-pointer flex-1 text-center bg-gray-50 hover:bg-gray-100 text-sm">
-                                    <input type="radio" name="${radioName}" value="Pass" class="sr-only">
-                                    <i class="fa-solid fa-circle-check"></i> ผ่าน
-                                </label>
-                                <label class="radio-card fail-option border border-gray-300 rounded-lg px-2 py-1.5 md:px-3 md:py-2 cursor-pointer flex-1 text-center bg-gray-50 hover:bg-gray-100 text-sm">
-                                    <input type="radio" name="${radioName}" value="Fail" class="sr-only">
-                                    <i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน
-                                </label>
+            <tr class="check-item-row">
+                <td class="pb-2 px-4 md:px-0">
+                    <div class="check-item bg-white border border-gray-200 rounded-xl p-3 shadow-sm" data-radioname="${radioName}">
+                        <div class="grid md:grid-cols-12 gap-2 items-start">
+                            <div class="md:col-span-1"><span class="font-bold text-base md:text-lg">${item[0]}</span></div>
+                            <div class="md:col-span-6"><div class="font-medium text-gray-800 leading-snug">${item[1].replace(/\n/g, '<br>')}</div></div>
+                            <div class="md:col-span-2"><span class="text-xs text-gray-500 leading-snug">${item[2].replace(/\n/g, '<br>')}</span></div>
+                            
+                            <div class="md:col-span-3 screen-layout">
+                                <div class="flex gap-2">
+                                    <label class="radio-card pass-option border border-gray-300 rounded-lg px-2 py-1.5 md:px-3 md:py-2 cursor-pointer flex-1 text-center bg-gray-50 hover:bg-gray-100 text-sm">
+                                        <input type="radio" name="${radioName}" value="Pass" class="sr-only">
+                                        <i class="fa-solid fa-circle-check"></i> ผ่าน
+                                    </label>
+                                    <label class="radio-card fail-option border border-gray-300 rounded-lg px-2 py-1.5 md:px-3 md:py-2 cursor-pointer flex-1 text-center bg-gray-50 hover:bg-gray-100 text-sm">
+                                        <input type="radio" name="${radioName}" value="Fail" class="sr-only">
+                                        <i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="md:col-span-3 print-layout">
+                                <div class="print-radio-container" id="print_status_${radioName}">
+                                    <div class="print-radio-box print-pass-box"><i class="fa-solid fa-circle-check"></i> ผ่าน</div>
+                                    <div class="print-radio-box print-fail-box"><i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน</div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="md:col-span-3 print-layout">
-                            <div class="print-radio-container" id="print_status_${radioName}">
-                                <div class="print-radio-box print-pass-box"><i class="fa-solid fa-circle-check"></i> ผ่าน</div>
-                                <div class="print-radio-box print-fail-box"><i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="remarks-container screen-layout">
-                        <label class="block text-[10px] md:text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">หมายเหตุ (Remarks)</label>
-                        <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-1.5 md:py-2 text-xs md:text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
-                                  rows="1" placeholder=""></textarea>
-                        
-                        <div class="photo-upload-container mt-2">
-                            <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
-                            <button type="button" class="text-[10px] md:text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
-                                <i class="fa-solid fa-camera"></i> แนบรูปถ่ายอ้างอิง
-                            </button>
-                            <div class="mt-2 preview-box hidden relative inline-block">
-                                <img src="" class="h-20 w-auto rounded border border-gray-300 object-cover preview-img">
-                                <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 remove-photo-btn" data-target="photo_${radioName}">
-                                    <i class="fa-solid fa-times"></i>
+                        <div class="remarks-container screen-layout">
+                            <label class="block text-[10px] md:text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">หมายเหตุ (Remarks)</label>
+                            <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-1.5 md:py-2 text-xs md:text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
+                                      rows="1" placeholder=""></textarea>
+                            
+                            <!-- ระบบอัปโหลดรูปภาพ -->
+                            <div class="photo-upload-container mt-2">
+                                <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
+                                <button type="button" class="text-[10px] md:text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
+                                    <i class="fa-solid fa-camera"></i> แนบรูปถ่ายอ้างอิง
                                 </button>
+                                <div class="mt-2 preview-box hidden relative inline-block">
+                                    <img src="" class="h-20 w-auto rounded border border-gray-300 object-cover preview-img">
+                                    <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 remove-photo-btn" data-target="photo_${radioName}">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                    </div>
+                        <!-- แสดงภาพ/Remark ในหน้า Print -->
+                        <div class="print-layout remarks-container print-remarks-box hidden">
+                            <span class="text-[10px] font-bold text-gray-500 block mb-0.5">หมายเหตุ: <span class="print-remark-text font-normal text-gray-700"></span></span>
+                        </div>
+                        <div class="print-layout mt-1 hidden print-photo-box">
+                            <span class="text-[10px] font-bold text-gray-500 block mb-0.5">ภาพประกอบ:</span>
+                            <img src="" class="print-img rounded border border-gray-300">
+                        </div>
 
-                    <div class="print-layout remarks-container print-remarks-box hidden">
-                        <span class="text-[10px] font-bold text-gray-500 block mb-0.5">หมายเหตุ: <span class="print-remark-text font-normal text-gray-700"></span></span>
                     </div>
-                    <div class="print-layout mt-1 hidden print-photo-box">
-                        <span class="text-[10px] font-bold text-gray-500 block mb-0.5">ภาพประกอบ:</span>
-                        <img src="" class="print-img rounded border border-gray-300">
-                    </div>
-
-                </div>
-            </td>
-        </tr>`;
+                </td>
+            </tr>`;
     });
+    
+    fullHtml += `</tbody></table>`; // ปิดตารางของแต่ละ Section
 });
-checklistBody.innerHTML = fullHtml;
+
+checklistContainer.innerHTML = fullHtml;
 
 // ระบบจัดการรูปภาพ (บีบอัดภาพเพื่อประหยัด LocalStorage)
 document.addEventListener("change", async (e) => {
@@ -563,7 +585,7 @@ document.addEventListener("input",(e)=>{
     if(e.target.classList.contains("remarks-input")){
         e.target.style.height = "auto";
         e.target.style.height = e.target.scrollHeight + "px";
-        updatePrintViews(); // อัปเดตช่อง remark ตอน print ด้วย
+        updatePrintViews();
     }
 });
 
@@ -593,7 +615,7 @@ async function exportToExcelJS() {
 
     const btn = document.getElementById("exportBtn");
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-2xl"></i> กำลังสร้างไฟล์...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 md:mr-3 text-lg md:text-2xl"></i> กำลังสร้างไฟล์...';
     btn.disabled = true;
 
     try {
@@ -833,7 +855,6 @@ function updateSummary() {
         if (failList.length > 0) {
             html += `<div class="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded-lg mb-3 flex items-center shadow-sm"><i class="fa-solid fa-circle-xmark text-lg mr-2"></i><p class="font-bold text-sm">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-2">`;
             failList.forEach(fail => {
-                // คง avoid-break ไว้ข้างในรายข้อ เพื่อไม่ให้ Defect 1 ข้อถูกหั่นครึ่งหน้า
                 html += `<div class="bg-white border border-red-200 p-2 rounded-lg shadow-sm" style="page-break-inside: avoid; break-inside: avoid;"><p class="font-bold text-red-600 text-xs"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-xs text-gray-700 mt-1 bg-gray-50 p-2 rounded border border-gray-100"><span class="font-semibold text-[10px]">หมายเหตุ:</span> ${fail.remark} ${fail.photoHtml}</div></div>`;
             });
             html += `</div>`;
