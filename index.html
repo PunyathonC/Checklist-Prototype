@@ -23,6 +23,7 @@
         .pass-selected{ background:#dcfce7 !important; border-color:#22c55e !important; color:#15803d !important; font-weight:600; }
         .fail-selected{ background:#fee2e2 !important; border-color:#ef4444 !important; color:#b91c1c !important; font-weight:600; }
         
+        /* ปรับปรุง CSS ของปุ่มลอยสำหรับมือถือโดยเฉพาะ */
         .floating-buttons {
             position: fixed;
             bottom: 12px;
@@ -30,17 +31,18 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 6px; 
+            gap: 6px; /* ลดช่องว่างระหว่างปุ่ม */
             z-index: 99999;
-            opacity: 0.95; 
+            opacity: 0.95; /* ทำให้ปุ่มโปร่งใสเล็กน้อยบนมือถือ */
         }
         
+        /* สไตล์สำหรับ Tablet และ PC */
         @media (min-width: 768px) {
             .floating-buttons {
                 bottom: 24px;
                 right: 24px;
                 gap: 12px;
-                opacity: 1; 
+                opacity: 1; /* กลับมาทึบ 100% บนจอใหญ่ */
             }
         }
 
@@ -51,18 +53,6 @@
 
         /* ซ่อน Screen Layout ในหน้าจอ Print */
         @media print {
-            /* ปลดข้อจำกัดของ Safari/WebKit ทั้งหมดที่ขัดขวางการ Page Break */
-            * {
-                overflow: visible !important;
-            }
-            .overflow-hidden {
-                overflow: visible !important;
-            }
-            body, html {
-                height: auto !important;
-                display: block !important;
-            }
-
             .screen-layout { display: none !important; }
             .print-layout { display: flex !important; flex-direction: column; }
             
@@ -79,34 +69,8 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
-            /* ใช้ inline-block เพื่อช่วยให้ Safari มองเห็น avoid-break */
-            .check-item { 
-                display: inline-block !important; 
-                width: 100% !important;
-                page-break-inside: avoid !important; 
-                break-inside: avoid !important; 
-                -webkit-column-break-inside: avoid !important;
-            }
-            
-            /* บังคับขึ้นหน้าใหม่แบบ display: block !important ช่วย Safari */
-            .safe-page-break {
-                display: block !important;
-                page-break-before: always !important;
-                break-before: page !important;
-                -webkit-break-before: always !important;
-                width: 100% !important;
-                height: 1px !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            
-            .print-page-break { 
-                display: block !important;
-                page-break-before: always !important; 
-                break-before: page !important; 
-                -webkit-break-before: always !important;
-            }
+            .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .print-page-break { page-break-before: always !important; break-before: page !important; }
             
             td { padding-left: 0 !important; padding-right: 0 !important; }
             .mea-bg, .section-header { background-color: #F37021 !important; color: white !important; }
@@ -204,23 +168,9 @@
     </tbody>
 
     <tbody id="checklistBody"></tbody>
-</table>
 
-<div class="safe-page-break print-only"></div>
-
-<table class="main-table w-full max-w-5xl mx-auto mt-6 md:mt-0">
-    <thead class="print-header">
-        <tr>
-            <td class="pb-4 pt-4 px-4 md:px-0">
-                <div class="flex justify-between items-center text-[11px] font-bold text-gray-500 border-b border-gray-300 pb-2">
-                    <span>วันที่ประเมิน: <span class="displayTimestamp text-gray-800"></span></span>
-                    <span>ผู้ตรวจสอบ: <span class="displayInspectorName text-gray-800"></span></span>
-                </div>
-            </td>
-        </tr>
-    </thead>
     <tbody>
-        <tr>
+        <tr class="print-page-break">
             <td class="pt-6 pb-4 px-4 md:px-0">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3">
@@ -243,7 +193,8 @@
                     <div id="summaryContent" class="p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p class="text-gray-500 text-center">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
                     </div>
-                </div>
+                    
+                    </div>
             </td>
         </tr>
     </tbody>
@@ -443,8 +394,9 @@ document.addEventListener("change", async (e) => {
             const img = new Image();
             img.src = event.target.result;
             img.onload = () => {
+                // บีบอัดรูปด้วย Canvas
                 const canvas = document.createElement("canvas");
-                const MAX_WIDTH = 600; 
+                const MAX_WIDTH = 600; // กำหนดความกว้างสูงสุด 600px
                 let scale = MAX_WIDTH / img.width;
                 if(scale > 1) scale = 1; 
                 
@@ -454,8 +406,10 @@ document.addEventListener("change", async (e) => {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
+                // แปลงกลับเป็น Base64 ที่ลด Quality เหลือ 60%
                 const compressedBase64 = canvas.toDataURL("image/jpeg", 0.6); 
                 
+                // อัปเดตการแสดงผลใน DOM
                 const container = e.target.closest('.photo-upload-container');
                 const previewBox = container.querySelector('.preview-box');
                 const previewImg = container.querySelector('.preview-img');
@@ -468,7 +422,7 @@ document.addEventListener("change", async (e) => {
                 printImg.src = compressedBase64;
                 printBox.classList.remove('hidden');
                 
-                saveData(); 
+                saveData(); // บันทึกข้อมูล
             };
         };
     }
@@ -496,18 +450,13 @@ document.addEventListener("click", (e) => {
 });
 
 function updatePrintRadios() {
-    // กำหนดให้เช็คเฉพาะ class check-item ที่มี data-radioname จริงๆ เท่านั้น
-    const checkItems = document.querySelectorAll('.check-item[data-radioname]');
+    const checkItems = document.querySelectorAll('.check-item');
     checkItems.forEach(item => {
         const radioName = item.getAttribute('data-radioname');
-        if(!radioName) return;
-
         const checkedRadio = document.querySelector(`input[name="${radioName}"]:checked`);
         const passBox = document.querySelector(`#print_status_${radioName} .print-pass-box`);
         const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
         
-        if(!passBox || !failBox) return;
-
         passBox.classList.remove('print-pass', 'inactive');
         failBox.classList.remove('print-fail', 'inactive');
         
@@ -544,6 +493,7 @@ document.addEventListener("change",(e)=>{
 });
 
 document.getElementById("inspectorName").addEventListener("input", function(e) {
+    // ให้ชื่อผู้ตรวจสอบโชว์เป็น "ยังไม่ระบุชื่อ" ถ้าไม่ได้กรอกข้อมูล แทนการใช้จุดไข่ปลา
     const val = e.target.value.trim() || "(ยังไม่ระบุชื่อ)";
     document.querySelectorAll(".displayInspectorName").forEach(el => el.innerText = val);
 });
@@ -719,6 +669,7 @@ async function exportToExcelJS() {
             }
         }
 
+        // ลบช่องลายเซ็นใน Excel ออก
         const sigRow = sheet.addRow(['', '', '', `สรุปโดย Inspector: ${inspector}`]);
         sheet.mergeCells(`D${sigRow.number}:E${sigRow.number}`);
         sigRow.getCell(4).alignment = { horizontal: 'right' };
@@ -783,7 +734,7 @@ function escapeHTML(str) {
 }
 
 function updateSummary() {
-    const items = document.querySelectorAll('.check-item[data-radioname]');
+    const items = document.querySelectorAll('.check-item');
     let passCount = 0;
     let failList = [];
     let pendingCount = 0;
@@ -818,8 +769,7 @@ function updateSummary() {
         if (failList.length > 0) {
             html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
             failList.forEach(fail => {
-                // แก้กลับไปใช้คลาสพื้นฐานที่ไม่กระทบการ Print ในบราวเซอร์
-                html += `<div class="bg-white border border-red-200 p-3 rounded-lg shadow-sm" style="page-break-inside: avoid; break-inside: avoid;"><p class="font-bold text-red-600 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold text-sm">หมายเหตุ:</span> ${fail.remark} ${fail.photoHtml}</div></div>`;
+                html += `<div class="bg-white border border-red-200 p-3 rounded-lg shadow-sm"><p class="font-bold text-red-600 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold text-sm">หมายเหตุ:</span> ${fail.remark} ${fail.photoHtml}</div></div>`;
             });
             html += `</div>`;
         } else {
@@ -931,3 +881,5 @@ window.addEventListener("load",()=>{
 
 </body>
 </html>
+
+
