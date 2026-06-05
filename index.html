@@ -23,7 +23,6 @@
         .pass-selected{ background:#dcfce7 !important; border-color:#22c55e !important; color:#15803d !important; font-weight:600; }
         .fail-selected{ background:#fee2e2 !important; border-color:#ef4444 !important; color:#b91c1c !important; font-weight:600; }
         
-        /* ปรับปรุง CSS ของปุ่มลอยสำหรับมือถือโดยเฉพาะ */
         .floating-buttons {
             position: fixed;
             bottom: 12px;
@@ -36,7 +35,6 @@
             opacity: 0.95; 
         }
         
-        /* สไตล์สำหรับ Tablet และ PC */
         @media (min-width: 768px) {
             .floating-buttons {
                 bottom: 24px;
@@ -69,18 +67,16 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
+            /* แก้ไขระบบตัดหน้ากระดาษที่เสถียรที่สุดสำหรับทุกบราวเซอร์และ iOS */
             .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
             .print-page-break { page-break-before: always !important; break-before: page !important; }
             
-            /* บังคับขึ้นหน้าใหม่สำหรับ iPad */
-            .force-page-break {
+            .safe-page-break {
                 page-break-before: always !important;
                 break-before: page !important;
-                -webkit-break-before: always !important;
-            }
-            .avoid-break {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
+                display: block !important;
+                height: 1px !important;
+                width: 100% !important;
             }
             
             td { padding-left: 0 !important; padding-right: 0 !important; }
@@ -181,12 +177,9 @@
     <tbody id="checklistBody"></tbody>
 </table>
 
-<!-- คำสั่งบังคับขึ้นหน้าใหม่ 100% สำหรับหน้า Summary บน iPad -->
-<div class="force-page-break print-only block"></div>
+<div class="safe-page-break print-only"></div>
 
-<!-- เริ่มตารางใหม่สำหรับ Summary เพื่อแก้ปัญหา iPad ฉีกหน้า -->
-<table class="main-table w-full max-w-5xl mx-auto force-page-break">
-    <!-- ใส่ Header กลับเข้ามาให้โชว์ในหน้า Summary เวลาปริ้นท์ด้วย -->
+<table class="main-table w-full max-w-5xl mx-auto mt-6 md:mt-0">
     <thead class="print-header">
         <tr>
             <td class="pb-4 pt-4 px-4 md:px-0">
@@ -198,9 +191,9 @@
         </tr>
     </thead>
     <tbody>
-        <tr class="avoid-break">
+        <tr>
             <td class="pt-6 pb-4 px-4 md:px-0">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 avoid-break">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3">
                         <i class="fa-solid fa-clipboard-check mr-2"></i>
                         สรุปการตรวจสอบ (Summary Report) 
@@ -382,7 +375,6 @@ sections.forEach((section, sIndex)=>{
                         <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
                                   rows="1" placeholder=""></textarea>
                         
-                        <!-- ระบบอัปโหลดรูปภาพ -->
                         <div class="photo-upload-container screen-layout mt-2">
                             <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
                             <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
@@ -398,7 +390,6 @@ sections.forEach((section, sIndex)=>{
 
                     </div>
 
-                    <!-- แสดงภาพในหน้า Print -->
                     <div class="print-layout mt-2 hidden print-photo-box">
                         <span class="text-[10px] font-bold text-gray-500 block mb-1">ภาพประกอบ:</span>
                         <img src="" class="print-img rounded border border-gray-300">
@@ -423,9 +414,8 @@ document.addEventListener("change", async (e) => {
             const img = new Image();
             img.src = event.target.result;
             img.onload = () => {
-                // บีบอัดรูปด้วย Canvas
                 const canvas = document.createElement("canvas");
-                const MAX_WIDTH = 600; // กำหนดความกว้างสูงสุด 600px
+                const MAX_WIDTH = 600; 
                 let scale = MAX_WIDTH / img.width;
                 if(scale > 1) scale = 1; 
                 
@@ -435,10 +425,8 @@ document.addEventListener("change", async (e) => {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
-                // แปลงกลับเป็น Base64 ที่ลด Quality เหลือ 60%
                 const compressedBase64 = canvas.toDataURL("image/jpeg", 0.6); 
                 
-                // อัปเดตการแสดงผลใน DOM
                 const container = e.target.closest('.photo-upload-container');
                 const previewBox = container.querySelector('.preview-box');
                 const previewImg = container.querySelector('.preview-img');
@@ -451,7 +439,7 @@ document.addEventListener("change", async (e) => {
                 printImg.src = compressedBase64;
                 printBox.classList.remove('hidden');
                 
-                saveData(); // บันทึกข้อมูล
+                saveData(); 
             };
         };
     }
@@ -796,7 +784,8 @@ function updateSummary() {
         if (failList.length > 0) {
             html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
             failList.forEach(fail => {
-                html += `<div class="bg-white border border-red-200 p-3 rounded-lg shadow-sm"><p class="font-bold text-red-600 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold text-sm">หมายเหตุ:</span> ${fail.remark} ${fail.photoHtml}</div></div>`;
+                // คง avoid-break ไว้ข้างในรายข้อ เพื่อไม่ให้ Defect 1 ข้อถูกหั่นครึ่งหน้า
+                html += `<div class="bg-white border border-red-200 p-3 rounded-lg shadow-sm check-item"><p class="font-bold text-red-600 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold text-sm">หมายเหตุ:</span> ${fail.remark} ${fail.photoHtml}</div></div>`;
             });
             html += `</div>`;
         } else {
