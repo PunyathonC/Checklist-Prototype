@@ -41,7 +41,7 @@
         /* ซ่อน Screen Layout ในหน้าจอ Print */
         @media print {
             .screen-layout { display: none !important; }
-            .print-layout { display: flex !important; }
+            .print-layout { display: flex !important; flex-direction: column; }
             
             @page { size: A4 portrait; margin: 10mm; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -56,7 +56,6 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
-            /* iOS Fix */
             .check-item { page-break-inside: avoid !important; break-inside: avoid !important; }
             .print-page-break { page-break-before: always !important; break-before: page !important; }
             
@@ -78,81 +77,36 @@
             .p-4 { padding: 12px !important; }
             .p-6 { padding: 16px !important; }
 
-            /* ปรับแต่ง Layout ใหม่ตอน Print ให้ตรงตามภาพเป๊ะๆ */
-            .check-item {
-                border: none !important;
-                border-bottom: 1px solid #e5e7eb !important;
-                border-radius: 0 !important;
-                padding: 12px 0 !important;
-                box-shadow: none !important;
-            }
+            .check-item { border: none !important; border-bottom: 1px solid #e5e7eb !important; border-radius: 0 !important; padding: 12px 0 !important; box-shadow: none !important; }
             
-            .grid { display: flex !important; width: 100%; justify-content: space-between; align-items: center; }
+            .grid { display: flex !important; width: 100%; justify-content: space-between; align-items: flex-start; flex-direction: row; }
             .md\:col-span-1 { width: 8%; flex-shrink: 0; }
             .md\:col-span-6 { width: 52%; flex-grow: 1; padding-right: 10px; }
             .md\:col-span-2 { width: 20%; flex-shrink: 0; font-size: 10px !important;}
             .md\:col-span-3 { width: 20%; flex-shrink: 0; display: flex; justify-content: flex-end;}
             
-            .remarks-container {
-                margin-top: 8px !important;
-                padding-top: 8px !important;
-                border-top: 1px dashed #e5e7eb !important;
-                width: 100%;
-            }
-            .remarks-container textarea {
-                color: #4b5563;
-                font-style: italic;
-            }
+            .remarks-container { margin-top: 8px !important; padding-top: 8px !important; border-top: 1px dashed #e5e7eb !important; width: 100%; }
+            .remarks-container textarea { color: #4b5563; font-style: italic; }
             
-            .section-header, .critical-header {
-                padding: 8px 12px !important;
-                border-radius: 8px !important;
-                margin-top: 16px !important;
-            }
+            .section-header, .critical-header { padding: 8px 12px !important; border-radius: 8px !important; margin-top: 16px !important; }
             .section-header h2, .critical-header h2 { font-size: 13px !important; }
             .bg-white.text-gray-700.w-8.h-8 { width: 20px !important; height: 20px !important; }
 
-            /* ปรับแต่งปุ่ม ผ่าน/ไม่ผ่าน ในหน้าจอ Print */
-            .print-radio-container {
-                display: flex;
-                gap: 8px;
-                justify-content: flex-end;
-            }
-            .print-radio-box {
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                padding: 4px 12px;
-                font-size: 11px;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                color: #6b7280;
-                background-color: #f9fafb;
-            }
+            .print-radio-container { display: flex; gap: 8px; justify-content: flex-end; }
+            .print-radio-box { border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 12px; font-size: 11px; display: flex; align-items: center; gap: 4px; color: #6b7280; background-color: #f9fafb; }
             .print-radio-box i { font-size: 10px; }
             
-            .print-radio-box.print-pass {
-                background-color: #dcfce7 !important;
-                border-color: #22c55e !important;
-                color: #15803d !important;
-                font-weight: bold;
-            }
-            .print-radio-box.print-fail {
-                background-color: #fee2e2 !important;
-                border-color: #ef4444 !important;
-                color: #b91c1c !important;
-                font-weight: bold;
-            }
-            .print-radio-box.inactive {
-                opacity: 0.5; /* ทำให้ตัวที่ไม่ได้เลือกดูจางลง */
-            }
+            .print-radio-box.print-pass { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; font-weight: bold; }
+            .print-radio-box.print-fail { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; font-weight: bold; }
+            .print-radio-box.inactive { opacity: 0.5; }
+            
+            .print-photo-box img { max-height: 150px !important; margin-top: 4px !important; }
         }
     </style>
 </head>
 <body class="min-h-screen pb-10">
 
 <table class="main-table w-full max-w-5xl mx-auto">
-    
     <thead class="print-header">
         <tr>
             <td class="pb-4 pt-4 px-4 md:px-0">
@@ -239,17 +193,6 @@
             </td>
         </tr>
     </tbody>
-
-    <tfoot class="print-footer">
-        <tr class="hidden"> 
-            <td class="pt-4 pb-4 px-4 md:px-0">
-                <div class="text-right text-[11px] font-bold text-gray-500 border-t border-gray-300 pt-2 mt-2">
-                    ผู้ตรวจสอบ: <span class="displayInspectorName text-gray-800"></span>
-                </div>
-            </td>
-        </tr>
-    </tfoot>
-
 </table>
 
 <div class="floating-buttons">
@@ -349,7 +292,6 @@ const checklistBody = document.getElementById("checklistBody");
 let fullHtml = ""; 
 
 sections.forEach((section, sIndex)=>{
-    // iOS Fix: สั่งตัดหน้ากระดาษที่ระดับ TR แทนระดับ Div ด้านในเพื่อให้ระบบ WebKit เรนเดอร์หน้าได้เสถียร
     const shouldPageBreak = sIndex > 0 && sIndex !== 2;
     
     fullHtml += `
@@ -401,14 +343,35 @@ sections.forEach((section, sIndex)=>{
                                 <div class="print-radio-box print-fail-box"><i class="fa-solid fa-circle-xmark"></i> ไม่ผ่าน</div>
                             </div>
                         </div>
-                        
                     </div>
                     
                     <div class="remarks-container mt-3 pt-3 border-t border-gray-100">
                         <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider screen-layout">หมายเหตุ (Remarks)</label>
                         <textarea class="remarks-input w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-all" 
                                   rows="1" placeholder=""></textarea>
+                        
+                        <!-- ระบบอัปโหลดรูปภาพ -->
+                        <div class="photo-upload-container screen-layout mt-2">
+                            <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
+                            <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
+                                <i class="fa-solid fa-camera"></i> แนบรูปถ่ายอ้างอิง
+                            </button>
+                            <div class="mt-2 preview-box hidden relative inline-block">
+                                <img src="" class="h-20 w-auto rounded border border-gray-300 object-cover preview-img">
+                                <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 remove-photo-btn" data-target="photo_${radioName}">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
+
+                    <!-- แสดงภาพในหน้า Print -->
+                    <div class="print-layout mt-2 hidden print-photo-box">
+                        <span class="text-[10px] font-bold text-gray-500 block mb-1">ภาพประกอบ:</span>
+                        <img src="" class="print-img rounded border border-gray-300">
+                    </div>
+
                 </div>
             </td>
         </tr>`;
@@ -416,7 +379,73 @@ sections.forEach((section, sIndex)=>{
 });
 checklistBody.innerHTML = fullHtml;
 
-// ฟังก์ชันอัปเดตสไตล์ของปุ่มในหน้า Print ให้ตรงกับที่เลือก
+// ระบบจัดการรูปภาพ (บีบอัดภาพเพื่อประหยัด LocalStorage)
+document.addEventListener("change", async (e) => {
+    if (e.target.classList.contains("photo-input")) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                // บีบอัดรูปด้วย Canvas
+                const canvas = document.createElement("canvas");
+                const MAX_WIDTH = 600; // กำหนดความกว้างสูงสุด 600px
+                let scale = MAX_WIDTH / img.width;
+                if(scale > 1) scale = 1; // ไม่ขยายภาพถ้าเล็กกว่า 600px อยู่แล้ว
+                
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // แปลงกลับเป็น Base64 ที่ลด Quality เหลือ 60%
+                const compressedBase64 = canvas.toDataURL("image/jpeg", 0.6); 
+                
+                // อัปเดตการแสดงผลใน DOM
+                const container = e.target.closest('.photo-upload-container');
+                const previewBox = container.querySelector('.preview-box');
+                const previewImg = container.querySelector('.preview-img');
+                const printBox = container.closest('.check-item').querySelector('.print-photo-box');
+                const printImg = printBox.querySelector('.print-img');
+                
+                previewImg.src = compressedBase64;
+                previewBox.classList.remove('hidden');
+                
+                printImg.src = compressedBase64;
+                printBox.classList.remove('hidden');
+                
+                saveData(); // บันทึกข้อมูล
+            };
+        };
+    }
+});
+
+// ฟังก์ชันลบรูปภาพ
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest('.remove-photo-btn');
+    if (btn) {
+        const targetId = btn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        input.value = ""; 
+        
+        const container = btn.closest('.photo-upload-container');
+        const previewBox = container.querySelector('.preview-box');
+        const previewImg = container.querySelector('.preview-img');
+        const printBox = container.closest('.check-item').querySelector('.print-photo-box');
+        
+        previewImg.src = "";
+        previewBox.classList.add('hidden');
+        printBox.classList.add('hidden');
+        
+        saveData();
+    }
+});
+
 function updatePrintRadios() {
     const checkItems = document.querySelectorAll('.check-item');
     checkItems.forEach(item => {
@@ -425,7 +454,6 @@ function updatePrintRadios() {
         const passBox = document.querySelector(`#print_status_${radioName} .print-pass-box`);
         const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
         
-        // Reset classes
         passBox.classList.remove('print-pass', 'inactive');
         failBox.classList.remove('print-fail', 'inactive');
         
@@ -438,7 +466,6 @@ function updatePrintRadios() {
                 passBox.classList.add('inactive');
             }
         } else {
-            // ไม่ได้เลือกอะไรเลย
             passBox.classList.add('inactive');
             failBox.classList.add('inactive');
         }
@@ -458,23 +485,20 @@ document.addEventListener("change",(e)=>{
         }else{
             selectedLabel.classList.add("fail-selected");
         }
-        updatePrintRadios(); // อัปเดตสไตล์สำหรับ Print ทันทีที่เปลี่ยนค่า
+        updatePrintRadios();
     }
 });
 
-// อัปเดตชื่อผู้ตรวจสอบแบบ Real-time
 document.getElementById("inspectorName").addEventListener("input", function(e) {
     const val = e.target.value.trim() || ".........................................";
     document.querySelectorAll(".displayInspectorName").forEach(el => el.innerText = val);
 });
 
-// อัปเดต Project No ในหน้าสรุปผลแบบ Real-time
 document.getElementById("projectNo").addEventListener("input", function(e) {
     const val = e.target.value.trim() || "-";
     document.querySelectorAll(".displaySummaryProject").forEach(el => el.innerText = val);
 });
 
-// ฟังก์ชันอัปเดตเวลาปัจจุบัน
 function updateCurrentTime() {
     const now = new Date();
     const formattedDate = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -483,9 +507,7 @@ function updateCurrentTime() {
     document.querySelectorAll(".displayTimestamp").forEach(el => el.innerText = timeStr);
 }
 
-// =====================================
-// ฟังก์ชันสร้างไฟล์ Excel ด้วย ExcelJS
-// =====================================
+// อัปเดต ExcelJS เล็กน้อย (Excel ทำรูปซับซ้อน จึงยังส่งออกแค่ Text ให้ทำงานได้ปกติ)
 async function exportToExcelJS() {
     if (typeof ExcelJS === 'undefined') {
         alert("กำลังโหลดระบบ Excel กรุณารอสักครู่แล้วลองกดใหม่อีกครั้ง");
@@ -571,7 +593,12 @@ async function exportToExcelJS() {
                 const radioEl = document.querySelector(`input[name="${radioName}"]:checked`);
                 let resultText = "-";
                 let resultColor = 'FF000000';
-                const remarkText = remarkInputs[inputIndex].value.trim() || "";
+                
+                // เช็คว่ามีรูปถ่ายไหมเพื่อใส่ไปใน Remark ของ Excel
+                const photoInput = document.getElementById(`photo_${radioName}`);
+                const hasPhoto = photoInput && photoInput.closest('.photo-upload-container').querySelector('.preview-img').src.startsWith('data:image');
+                let remarkText = remarkInputs[inputIndex].value.trim() || "";
+                if(hasPhoto) remarkText += (remarkText ? " [มีภาพถ่ายแนบในระบบ]" : "[มีภาพถ่ายแนบในระบบ]");
                 
                 if (radioEl) {
                     if (radioEl.value === "Pass") {
@@ -682,10 +709,7 @@ function printChecklist(){
     document.querySelectorAll(".remarks-input").forEach(textarea=>{
         textarea.style.height = "auto";
         textarea.style.height = textarea.scrollHeight + "px";
-        
-        if(textarea.value.trim() === "") {
-            textarea.value = " ";
-        }
+        if(textarea.value.trim() === "") textarea.value = " ";
     });
     
     updatePrintRadios(); 
@@ -693,17 +717,14 @@ function printChecklist(){
     
     setTimeout(() => {
         window.print();
-        
         document.querySelectorAll(".remarks-input").forEach(textarea=>{
-            if(textarea.value === " ") {
-                textarea.value = "";
-            }
+            if(textarea.value === " ") textarea.value = "";
         });
     }, 300);
 }
 
 function clearChecklist(){
-    if(confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")){
+    if(confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่? (รูปภาพที่แนบไว้จะถูกลบด้วย)")){
         localStorage.removeItem("mdb_fat_checklist");
         location.reload();
     }
@@ -726,9 +747,14 @@ function updateSummary() {
         const remarkRaw = itemDom.querySelector('.remarks-input').value.trim();
         const remarkSafe = remarkRaw ? escapeHTML(remarkRaw) : '<span class="text-gray-400 italic">ไม่ได้ระบุหมายเหตุ</span>';
 
+        // ดึงรูปภาพมาแสดงในหน้าสรุปผล
+        const photoInputId = `photo_${itemDom.getAttribute('data-radioname')}`;
+        const photoPreview = itemDom.querySelector(`#${photoInputId}`).closest('.photo-upload-container').querySelector('.preview-img').src;
+        const photoHtml = (photoPreview && photoPreview.startsWith('data:image')) ? `<div class="mt-3"><span class="text-xs font-bold text-gray-500 mb-1 block">ภาพประกอบ:</span><img src="${photoPreview}" class="h-20 rounded border border-gray-300"></div>` : '';
+
         if (!checkedRadio) pendingCount++;
         else if (checkedRadio.value === 'Pass') passCount++;
-        else if (checkedRadio.value === 'Fail') failList.push({ title: `${itemNumber} ${itemDesc}`, remark: remarkSafe });
+        else if (checkedRadio.value === 'Fail') failList.push({ title: `${itemNumber} ${itemDesc}`, remark: remarkSafe, photoHtml: photoHtml });
     });
 
     const summaryContainer = document.getElementById('summaryContent');
@@ -745,7 +771,7 @@ function updateSummary() {
         if (failList.length > 0) {
             html += `<div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center shadow-sm"><i class="fa-solid fa-circle-xmark text-2xl mr-3"></i><p class="font-bold text-lg">พบรายการ ไม่ผ่าน จำนวน ${failList.length} ข้อ</p></div><div class="space-y-3">`;
             failList.forEach(fail => {
-                html += `<div class="bg-white border border-red-200 p-4 rounded-lg shadow-sm"><p class="font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold">หมายเหตุ:</span> ${fail.remark}</div></div>`;
+                html += `<div class="bg-white border border-red-200 p-4 rounded-lg shadow-sm"><p class="font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ข้อ ${fail.title}</p><div class="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded border border-gray-100"><span class="font-semibold">หมายเหตุ:</span> ${fail.remark} ${fail.photoHtml}</div></div>`;
             });
             html += `</div>`;
         } else {
@@ -762,13 +788,28 @@ function saveData(){
         projectNo : document.getElementById("projectNo")?.value || "",
         inspector : document.getElementById("inspectorName")?.value || "",
         remarks : [],
-        radios : {}
+        radios : {},
+        photos : {}
     };
 
     document.querySelectorAll(".remarks-input").forEach(input=>{ data.remarks.push(input.value); });
     document.querySelectorAll('input[type="radio"]:checked').forEach(radio=>{ data.radios[radio.name] = radio.value; });
+    
+    // บันทึกรูปภาพ (Base64)
+    document.querySelectorAll(".photo-input").forEach(input => {
+        const previewImg = input.closest('.photo-upload-container').querySelector('.preview-img');
+        if(previewImg.src && previewImg.src.startsWith('data:image')) {
+            data.photos[input.id] = previewImg.src;
+        }
+    });
 
-    localStorage.setItem("mdb_fat_checklist", JSON.stringify(data));
+    try {
+        localStorage.setItem("mdb_fat_checklist", JSON.stringify(data));
+    } catch (e) {
+        if (e.name === 'QuotaExceededError') {
+            alert("พื้นที่จัดเก็บในเบราว์เซอร์เต็ม ไม่สามารถบันทึกรูปภาพเพิ่มได้ กรุณากดปุ่มล้างข้อมูลหากต้องการเริ่มใหม่");
+        }
+    }
     updateSummary(); 
 }
 
@@ -815,6 +856,26 @@ window.addEventListener("load",()=>{
             else label.classList.add("fail-selected");
         }
     });
+
+    // โหลดรูปภาพกลับมาแสดง
+    Object.keys(data.photos || {}).forEach(id => {
+        const input = document.getElementById(id);
+        if(input) {
+            const container = input.closest('.photo-upload-container');
+            const previewBox = container.querySelector('.preview-box');
+            const previewImg = container.querySelector('.preview-img');
+            const printBox = container.closest('.check-item').querySelector('.print-photo-box');
+            const printImg = printBox.querySelector('.print-img');
+            
+            const base64Str = data.photos[id];
+            previewImg.src = base64Str;
+            previewBox.classList.remove('hidden');
+            
+            printImg.src = base64Str;
+            printBox.classList.remove('hidden');
+        }
+    });
+
     updateSummary();
     updatePrintRadios(); 
 });
