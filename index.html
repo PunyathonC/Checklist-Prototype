@@ -116,14 +116,14 @@
             input[type="text"] { border-bottom: 1px dotted #ccc !important; border-radius: 0 !important; }
             textarea { border-bottom: 1px dashed #ddd !important; border-radius: 0 !important; height: auto !important; overflow: visible !important; margin-top: 4px !important; padding-top: 0 !important;}
             
-            /* 💥 ขยาย Font ตัวหนังสือทั่วไปตอน Print จาก 11px เป็น 14px */
+            /* ขยาย Font ตัวหนังสือทั่วไปตอน Print */
             body, p, span, div, label, input, textarea { font-size: 14px !important; line-height: 1.4 !important; }
             
-            /* ขยายหัวข้อหลักจาก 16px เป็น 20px */
+            /* ขยายหัวข้อหลัก */
             h1.text-2xl, h1.text-3xl { font-size: 20px !important; margin: 0 !important;}
             p.text-orange-100 { margin-top: 0 !important; font-size: 12px !important;}
             
-            /* ขยายหัวข้อ Summary จาก 13px เป็น 16px */
+            /* ขยายหัวข้อ Summary */
             h2.text-xl { font-size: 16px !important; margin-bottom: 6px !important; }
             .p-6 { padding: 12px !important; }
             .pb-6 { padding-bottom: 8px !important; }
@@ -135,14 +135,14 @@
             .md\:col-span-1 { width: 8%; flex-shrink: 0; font-weight: bold; }
             .md\:col-span-6 { width: 52%; flex-grow: 1; padding-right: 8px; font-weight: 500; }
             
-            /* ขยาย Font ข้อความมาตรฐานอ้างอิงช่องขวา จาก 9px เป็น 12px */
+            /* ขยาย Font ข้อความมาตรฐานอ้างอิงช่องขวา */
             .md\:col-span-2 { width: 20%; flex-shrink: 0; font-size: 12px !important;}
             .md\:col-span-3 { width: 20%; flex-shrink: 0; display: flex; justify-content: flex-end;}
             
             .remarks-container { margin-top: 6px !important; padding-top: 6px !important; border-top: 1px dashed #e5e7eb !important; width: 100%; }
             .remarks-container textarea { color: #4b5563; font-style: italic; }
             
-            /* ขยาย Font หัวแถว Section จาก 12px เป็น 15px */
+            /* ขยาย Font หัวแถว Section */
             .section-header, .critical-header { padding: 8px 12px !important; border-radius: 4px !important; margin-top: 10px !important; }
             .section-header h2, .critical-header h2 { font-size: 15px !important; margin-bottom: 0 !important;}
             .bg-white.text-gray-700.w-8.h-8 { width: 18px !important; height: 18px !important; }
@@ -430,9 +430,9 @@ sections.forEach((section, sIndex) => {
                                       rows="1" placeholder=""></textarea>
                             
                             <div class="photo-upload-container mt-2">
-                                <input type="file" accept="image/*" capture="environment" class="hidden photo-input" id="photo_${radioName}">
+                                <input type="file" accept="image/*" class="hidden photo-input" id="photo_${radioName}">
                                 <button type="button" class="text-[10px] md:text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded flex items-center gap-2 border border-gray-300 transition-colors" onclick="document.getElementById('photo_${radioName}').click()">
-                                    <i class="fa-solid fa-camera"></i> แนบรูปถ่ายอ้างอิง
+                                    <i class="fa-solid fa-image"></i> แนบรูปภาพ / ถ่ายรูป
                                 </button>
                                 <div class="mt-2 preview-box hidden relative inline-block">
                                     <img src="" class="h-20 w-auto rounded border border-gray-300 object-cover preview-img">
