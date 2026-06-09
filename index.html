@@ -261,14 +261,14 @@
 </table>
 
 <div class="floating-buttons">
-    <button onclick="exportToExcelJS()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 md:px-6 md:py-4 rounded-full shadow-lg font-bold flex items-center transition-all text-xs md:text-lg" id="exportBtn">
-        <i class="fa-solid fa-file-excel mr-1.5 md:mr-3 text-sm md:text-2xl"></i> <span class="hidden md:inline">ดาวน์โหลด</span> Excel
+    <button onclick="exportToExcelJS()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-full shadow-lg font-semibold flex items-center justify-center gap-2 text-xs md:text-base transition-all" id="exportBtn">
+        <i class="fa-solid fa-file-excel text-sm md:text-xl"></i> ดาวน์โหลด Excel
     </button>
-    <button onclick="printChecklist()" class="mea-bg hover:opacity-90 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full shadow-lg font-semibold flex items-center transition-all text-xs md:text-base">
-        <i class="fa-solid fa-print mr-1.5 text-sm md:text-xl"></i> พิมพ์ / PDF
+    <button onclick="printChecklist()" class="mea-bg hover:opacity-90 text-white px-4 py-2 md:px-6 md:py-3 rounded-full shadow-lg font-semibold flex items-center justify-center gap-2 text-xs md:text-base transition-all">
+        <i class="fa-solid fa-print text-sm md:text-xl"></i> พิมพ์ / PDF
     </button>
-    <button onclick="clearChecklist()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 md:px-6 md:py-3 rounded-full shadow-lg font-semibold flex items-center transition-all text-xs md:text-base">
-        <i class="fa-solid fa-trash mr-1.5 text-sm"></i> ล้างข้อมูล
+    <button onclick="clearChecklist()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-full shadow-lg font-semibold flex items-center justify-center gap-2 text-xs md:text-base transition-all">
+        <i class="fa-solid fa-trash text-sm md:text-xl"></i> ล้างข้อมูล
     </button>
 </div>
 
@@ -617,7 +617,7 @@ async function exportToExcelJS() {
 
     const btn = document.getElementById("exportBtn");
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 md:mr-3 text-lg md:text-2xl"></i> กำลังสร้างไฟล์...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้าง...';
     btn.disabled = true;
 
     try {
@@ -802,7 +802,16 @@ async function exportToExcelJS() {
 }
 
 function printChecklist(){
-    updatePrintViews(); 
+    document.querySelectorAll(".remarks-input").forEach(textarea=>{
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+        
+        if(textarea.value.trim() === "") {
+            textarea.value = " ";
+        }
+    });
+    
+    updatePrintRadios(); 
     updateCurrentTime(); 
     
     setTimeout(() => {
@@ -815,6 +824,36 @@ function clearChecklist(){
         localStorage.removeItem("mdb_fat_checklist");
         location.reload();
     }
+}
+
+// ฟังก์ชันอัปเดตสไตล์ของปุ่มในหน้า Print ให้ตรงกับที่เลือก
+function updatePrintRadios() {
+    const checkItems = document.querySelectorAll('.check-item');
+    checkItems.forEach(item => {
+        const radioName = item.getAttribute('data-radioname');
+        if (!radioName) return;
+        const checkedRadio = document.querySelector(`input[name="${radioName}"]:checked`);
+        const passBox = document.querySelector(`#print_status_${radioName} .print-pass-box`);
+        const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
+        
+        if (passBox && failBox) {
+            passBox.classList.remove('print-pass', 'inactive');
+            failBox.classList.remove('print-fail', 'inactive');
+            
+            if (checkedRadio) {
+                if (checkedRadio.value === 'Pass') {
+                    passBox.classList.add('print-pass');
+                    failBox.classList.add('inactive');
+                } else {
+                    failBox.classList.add('print-fail');
+                    passBox.classList.add('inactive');
+                }
+            } else {
+                passBox.classList.add('inactive');
+                failBox.classList.add('inactive');
+            }
+        }
+    });
 }
 
 function escapeHTML(str) {
@@ -971,7 +1010,7 @@ window.addEventListener("load",()=>{
     });
 
     updateSummary();
-    updatePrintViews(); 
+    updatePrintRadios(); 
 });
 </script>
 
