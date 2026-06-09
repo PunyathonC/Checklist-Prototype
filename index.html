@@ -49,20 +49,28 @@
             .print-header, .print-footer, .print-only, .print-layout { display: none !important; }
         }
 
-        /* ซ่อน Screen Layout ในหน้าจอ Print และปรับขนาด Font ให้ใหญ่ขึ้น */
+        /* 💥 โหมด Print สำหรับ iOS Safari / WebKit Fix 💥 */
         @media print {
-            * { overflow: visible !important; }
+            /* 1. ล้างค่า Overflow และ Fix ขนาด */
+            * { 
+                overflow: visible !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+            }
+            body, html { height: auto !important; display: block !important; background: white !important; }
             .overflow-hidden { overflow: visible !important; }
-            body, html { height: auto !important; display: block !important; }
+            
+            /* 2. ปิดการใช้งาน Flexbox และ Grid ทั้งหมด เพื่อแก้บั๊ก iOS WebKit */
+            .flex, .inline-flex, .grid, .inline-grid, .flex-col, .flex-row { 
+                display: block !important; 
+            }
 
             .screen-layout { display: none !important; }
-            .print-layout { display: flex !important; flex-direction: column; }
-            
-            @page { size: A4 portrait; margin: 10mm; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body { background: white !important; }
+            .print-layout { display: block !important; }
             .no-print, .floating-buttons { display: none !important; }
             .print-only { display: block !important; }
+            
+            @page { size: A4 portrait; margin: 10mm; }
             
             .shadow-lg, .shadow-sm, .shadow-md { box-shadow: none !important; border-radius: 0 !important; }
             .bg-white { background-color: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; }
@@ -71,105 +79,86 @@
             .print-header { display: table-header-group !important; }
             .print-footer { display: table-footer-group !important; }
             
-            .check-item-row {
-                page-break-inside: avoid !important; 
-                break-inside: avoid !important; 
-            }
-            .check-item { 
-                display: inline-block !important; 
-                width: 100% !important;
-                page-break-inside: avoid !important; 
-                break-inside: avoid !important; 
-                -webkit-column-break-inside: avoid !important;
-                padding: 8px 0 !important; 
-            }
-
-            .section-header-row {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                page-break-after: avoid !important;
-                break-after: avoid !important;
-            }
-            
-            .safe-page-break {
-                display: block !important;
+            /* 3. คำสั่ง Page Break */
+            .print-page-break {
+                display: table-row !important;
                 page-break-before: always !important;
                 break-before: page !important;
                 -webkit-break-before: always !important;
-                width: 100% !important;
-                height: 1px !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
+            }
+            .check-item-row, .section-header-row {
+                page-break-inside: avoid !important; 
+                break-inside: avoid !important; 
+                -webkit-column-break-inside: avoid !important;
             }
             
             td { padding-left: 0 !important; padding-right: 0 !important; }
             .mea-bg, .section-header { background-color: #F37021 !important; color: white !important; }
             .critical-header { background-color: #ef4444 !important; color: white !important; }
             .bg-gray-50 { background-color: #f9fafb !important; }
-            .bg-green-50 { background-color: #f0fdf4 !important; }
-            .bg-red-50 { background-color: #fef2f2 !important; }
-            .bg-blue-50 { background-color: #eff6ff !important; }
-            .pass-selected { background-color: #dcfce7 !important; }
-            .fail-selected { background-color: #fee2e2 !important; }
+            
             input, textarea { background: transparent !important; border: none !important; padding: 0 !important; outline: none !important; resize: none !important; box-shadow: none !important; }
             input[type="text"] { border-bottom: 1px dotted #ccc !important; border-radius: 0 !important; }
             textarea { border-bottom: 1px dashed #ddd !important; border-radius: 0 !important; height: auto !important; overflow: visible !important; margin-top: 4px !important; padding-top: 0 !important;}
             
-            /* ขยาย Font ตัวหนังสือทั่วไปตอน Print */
             body, p, span, div, label, input, textarea { font-size: 14px !important; line-height: 1.4 !important; }
-            
-            /* ขยายหัวข้อหลัก */
-            h1.text-2xl, h1.text-3xl { font-size: 20px !important; margin: 0 !important;}
-            p.text-orange-100 { margin-top: 0 !important; font-size: 12px !important;}
-            
-            /* ขยายหัวข้อ Summary */
-            h2.text-xl { font-size: 16px !important; margin-bottom: 6px !important; }
+            h1.text-2xl, h1.text-3xl { font-size: 20px !important; margin: 0 !important; display: block !important;}
+            p.text-orange-100 { margin-top: 0 !important; font-size: 12px !important; display: block !important;}
+            h2.text-xl { font-size: 16px !important; margin-bottom: 6px !important; display: block !important;}
             .p-6 { padding: 12px !important; }
-            .pb-6 { padding-bottom: 8px !important; }
-            .pt-4 { padding-top: 8px !important; }
 
-            .check-item { border: none !important; border-bottom: 1px solid #e5e7eb !important; border-radius: 0 !important; box-shadow: none !important; }
-            
-            /* ปรับสมดุลความกว้างคอลัมน์ตอนปริ้นใหม่ เพื่อไม่ให้ปุ่มโดนบีบจนคำขาดออกจากกัน */
-            .grid { display: flex !important; width: 100%; justify-content: space-between; align-items: flex-start; flex-direction: row; }
-            .md\:col-span-1 { width: 8%; flex-shrink: 0; font-weight: bold; }
-            .md\:col-span-6 { width: 50%; flex-grow: 1; padding-right: 8px; font-weight: 500; }
-            .md\:col-span-2 { width: 18%; flex-shrink: 0; font-size: 12px !important;}
-            .md\:col-span-3 { width: 24%; flex-shrink: 0; display: flex; justify-content: flex-end;}
-            
-            .remarks-container { margin-top: 6px !important; padding-top: 6px !important; border-top: 1px dashed #e5e7eb !important; width: 100%; }
-            .remarks-container textarea { color: #4b5563; font-style: italic; }
-            
-            /* ขยาย Font หัวแถว Section */
-            .section-header, .critical-header { padding: 8px 12px !important; border-radius: 4px !important; margin-top: 10px !important; }
-            .section-header h2, .critical-header h2 { font-size: 15px !important; margin-bottom: 0 !important;}
-            .bg-white.text-gray-700.w-8.h-8 { width: 18px !important; height: 18px !important; }
+            /* 4. สร้าง Layout หัวกระดาษใหม่ด้วยโหมด Table */
+            .print-header td > div { display: table !important; width: 100% !important; }
+            .print-header span { display: table-cell !important; vertical-align: middle; }
+            .print-header span:last-child { text-align: right; }
 
-            /* ขยายขนาดปุ่มและฟอนต์ ผ่าน/ไม่ผ่าน ในหน้า Print */
-            .print-radio-container { display: flex; gap: 8px; justify-content: flex-end; }
+            /* 5. สร้าง Layout หัวข้อ Section ใหม่ด้วยโหมด Table */
+            .section-header > div, .critical-header > div { display: table !important; width: 100% !important; }
+            .section-header h2, .critical-header h2 { display: table-cell !important; vertical-align: middle; font-size: 15px !important; margin-bottom: 0 !important;}
+            .section-header span, .critical-header span { display: table-cell !important; vertical-align: middle; text-align: right; width: 1%; white-space: nowrap; }
+            .bg-white.text-gray-700.w-8.h-8 { display: inline-block !important; width: 18px !important; height: 18px !important; text-align: center; line-height: 18px; margin-right: 6px; }
+
+            /* 6. สร้าง Layout รายการย่อยใหม่ด้วยโหมด Table */
+            .check-item { 
+                display: block !important; 
+                width: 100% !important;
+                padding: 8px 0 !important; 
+                border: none !important; 
+                border-bottom: 1px solid #e5e7eb !important; 
+                border-radius: 0 !important; 
+                box-shadow: none !important; 
+            }
+            .check-item > div.grid { display: table !important; width: 100% !important; table-layout: fixed; }
+            .md\:col-span-1 { display: table-cell !important; width: 8%; vertical-align: top; font-weight: bold; }
+            .md\:col-span-6 { display: table-cell !important; width: 50%; vertical-align: top; padding-right: 8px; font-weight: 500; }
+            .md\:col-span-2 { display: table-cell !important; width: 18%; vertical-align: top; font-size: 12px !important;}
+            .md\:col-span-3 { display: table-cell !important; width: 24%; vertical-align: top; text-align: right; }
+            
+            .remarks-container { display: block !important; margin-top: 6px !important; padding-top: 6px !important; border-top: 1px dashed #e5e7eb !important; width: 100%; }
+            .remarks-container textarea { color: #4b5563; font-style: italic; display: block !important; width: 100% !important; }
+
+            /* ปรับขนาดปุ่ม ผ่าน/ไม่ผ่าน ในหน้า Print */
+            .print-radio-container { display: block !important; text-align: right; }
             .print-radio-box { 
                 border: 1px solid #d1d5db; 
                 border-radius: 5px; 
                 padding: 4px 12px; 
                 font-size: 12px !important; 
-                display: flex; 
-                align-items: center; 
-                gap: 5px; 
+                display: inline-block !important; 
                 color: #6b7280; 
                 background-color: #f9fafb; 
-                white-space: nowrap !important; /* 💥 ล็อกคำไว้ไม่ให้หลุดบรรทัดแยกจากกันเด็ดขาด */
+                white-space: nowrap !important;
+                margin-left: 4px;
+                vertical-align: middle;
             }
-            .print-radio-box i { font-size: 11px !important; }
+            .print-radio-box i { font-size: 11px !important; margin-right: 4px; }
             
             .print-radio-box.print-pass { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; font-weight: bold; }
             .print-radio-box.print-fail { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; font-weight: bold; }
             .print-radio-box.inactive { opacity: 0.4; }
             
-            .print-photo-box img { max-height: 220px !important; width: auto !important; max-width: 100% !important; margin-top: 6px !important; object-fit: contain; }
-            .print-header div { font-size: 12px !important; }
-            .print-remarks-box span { font-size: 13px !important; }
-            .print-photo-box span { font-size: 13px !important; }
+            .print-photo-box { display: block !important; }
+            .print-photo-box img { max-height: 220px !important; width: auto !important; max-width: 100% !important; margin-top: 6px !important; object-fit: contain; display: block !important; }
         }
     </style>
 </head>
@@ -186,7 +175,8 @@
             </td>
         </tr>
     </thead>
-    <tbody>
+    
+    <tbody id="topFormContainer">
         <tr>
             <td class="pb-2 pt-4 px-4 md:px-0">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
@@ -204,15 +194,15 @@
                     <div class="p-6">
                         <div class="grid md:grid-cols-3 gap-6">
                             <div>
-                                <label class="text-sm text-gray-500 font-medium">Reference Spec</label>
+                                <label class="text-sm text-gray-500 font-medium block">Reference Spec</label>
                                 <input type="text" id="referenceSpec" placeholder="ระบุ Reference Spec" class="w-full mt-1 border rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-orange-500">
                             </div>
                             <div>
-                                <label class="text-sm text-mea-orange font-bold">ผู้ตรวจสอบ (Inspector)</label>
+                                <label class="text-sm text-mea-orange font-bold block">ผู้ตรวจสอบ (Inspector)</label>
                                 <input type="text" id="inspectorName" placeholder="ระบุชื่อผู้ตรวจสอบ" class="w-full mt-1 border border-orange-300 rounded-lg px-3 py-2 bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500">
                             </div>
                             <div>
-                                <label class="text-sm text-gray-500 font-medium">Project / MDB No.</label>
+                                <label class="text-sm text-gray-500 font-medium block">Project / MDB No.</label>
                                 <input type="text" id="projectNo" placeholder="Enter MDB Information" class="w-full mt-1 border rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-orange-500">
                             </div>
                         </div>
@@ -221,27 +211,13 @@
             </td>
         </tr>
     </tbody>
-</table>
 
-<div id="checklistContainer"></div>
+    <tbody id="checklistBody"></tbody>
 
-<div class="safe-page-break print-only"></div>
-
-<table class="main-table w-full max-w-5xl mx-auto mt-6 md:mt-0">
-    <thead class="print-header">
-        <tr>
-            <td class="pb-2 pt-2 px-4 md:px-0">
-                <div class="flex justify-between items-center text-[10px] font-bold text-gray-500 border-b border-gray-300 pb-1">
-                    <span>วันที่ประเมิน: <span class="displayTimestamp text-gray-800"></span></span>
-                    <span>ผู้ตรวจสอบ: <span class="displayInspectorName text-gray-800"></span></span>
-                </div>
-            </td>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
+    <tbody id="summaryContainerBody">
+        <tr class="print-page-break">
             <td class="pt-4 pb-4 px-4 md:px-0">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mt-4 md:mt-0">
                     <h2 class="text-xl font-bold mb-4 mea-text border-b pb-3 flex justify-between items-center">
                         <div>
                             <i class="fa-solid fa-clipboard-check mr-2"></i>
@@ -263,6 +239,16 @@
                     
                     <div id="summaryContent" class="p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p class="text-gray-500 text-center text-sm">กรุณาทำรายการตรวจสอบเพื่อดูสรุปผล</p>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-300 print-only">
+                        <div class="flex justify-end items-end">
+                            <div class="text-center w-64">
+                                <p class="text-gray-600 mb-6 text-xs font-bold">ลงชื่อผู้ตรวจสอบ (Inspector Signature)</p>
+                                <div class="border-b border-gray-400 pb-1 mb-2"></div>
+                                <p class="text-xs text-gray-700 font-bold">( <span class="displayInspectorName text-mea-orange px-2"></span> )</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </td>
@@ -363,44 +349,35 @@ const sections = [
     }
 ];
 
-const checklistContainer = document.getElementById("checklistContainer");
+const checklistBody = document.getElementById("checklistBody");
 let fullHtml = ""; 
 
 sections.forEach((section, sIndex) => {
-    if (sIndex > 0) {
-        fullHtml += `<div class="safe-page-break print-only"></div>`;
+    // บังคับขึ้นหน้าใหม่เสมอ (ยกเว้นข้อ 3 ให้ต่อข้อ 2)
+    const shouldPageBreak = sIndex !== 2; 
+    
+    if (shouldPageBreak) {
+        fullHtml += `<tr class="print-page-break"><td style="padding:0; border:none; height:0;"></td></tr>`;
     }
 
     fullHtml += `
-    <table class="main-table w-full max-w-5xl mx-auto ${sIndex > 0 ? 'mt-6 md:mt-0' : 'mt-2 md:mt-4'}">
-        <thead class="print-header">
-            <tr>
-                <td class="pb-2 pt-2 px-4 md:px-0">
-                    <div class="flex justify-between items-center text-[10px] font-bold text-gray-500 border-b border-gray-300 pb-1">
-                        <span>วันที่ประเมิน: <span class="displayTimestamp text-gray-800"></span></span>
-                        <span>ผู้ตรวจสอบ: <span class="displayInspectorName text-gray-800"></span></span>
-                    </div>
-                </td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="section-header-row">
-                <td class="pb-2 pt-2 px-4 md:px-0">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-3">
-                            <div class="flex items-center justify-between">
-                                <h2 class="font-bold text-lg flex items-center gap-3 m-0">
-                                    <div class="bg-white text-gray-700 w-6 h-6 md:w-8 md:h-8 rounded flex items-center justify-center shadow-sm">
-                                        <i class="fa-solid ${section.icon} text-xs md:text-sm"></i>
-                                    </div>
-                                    ${section.title}
-                                </h2>
-                                ${section.critical ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold">CRITICAL TEST</span>' : ''}
-                            </div>
+        <tr class="section-header-row">
+            <td class="pb-2 pt-2 px-4 md:px-0">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${sIndex > 0 ? 'mt-4 md:mt-6' : 'mt-2 md:mt-4'}">
+                    <div class="${section.critical ? 'critical-header' : 'section-header'} text-white p-3">
+                        <div class="flex items-center justify-between">
+                            <h2 class="font-bold text-lg flex items-center gap-3 m-0">
+                                <div class="bg-white text-gray-700 w-6 h-6 md:w-8 md:h-8 rounded flex items-center justify-center shadow-sm">
+                                    <i class="fa-solid ${section.icon} text-xs md:text-sm"></i>
+                                </div>
+                                ${section.title}
+                            </h2>
+                            ${section.critical ? '<span class="bg-white text-red-600 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold">CRITICAL TEST</span>' : ''}
                         </div>
                     </div>
-                </td>
-            </tr>`;
+                </div>
+            </td>
+        </tr>`;
 
     section.items.forEach((item, i) => {
         const radioName = `section${sIndex}_item${i}`;
@@ -465,13 +442,11 @@ sections.forEach((section, sIndex) => {
                 </td>
             </tr>`;
     });
-    
-    fullHtml += `</tbody></table>`;
 });
 
-checklistContainer.innerHTML = fullHtml;
+checklistBody.innerHTML = fullHtml;
 
-// ระบบจัดการรูปภาพ (บีบอัดภาพเพื่อประหยัด LocalStorage)
+// ระบบจัดการรูปภาพ
 document.addEventListener("change", async (e) => {
     if (e.target.classList.contains("photo-input")) {
         const file = e.target.files[0];
@@ -514,7 +489,6 @@ document.addEventListener("change", async (e) => {
     }
 });
 
-// ฟังก์ชันลบรูปภาพ
 document.addEventListener("click", (e) => {
     const btn = e.target.closest('.remove-photo-btn');
     if (btn) {
@@ -546,20 +520,17 @@ function updatePrintViews() {
         const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
         
         if(passBox && failBox) {
-            passBox.classList.remove('print-pass', 'inactive');
-            failBox.classList.remove('print-fail', 'inactive');
+            passBox.className = "print-radio-box print-pass-box inactive";
+            failBox.className = "print-radio-box print-fail-box inactive";
             
             if (checkedRadio) {
                 if (checkedRadio.value === 'Pass') {
+                    passBox.classList.remove('inactive');
                     passBox.classList.add('print-pass');
-                    failBox.classList.add('inactive');
                 } else {
+                    failBox.classList.remove('inactive');
                     failBox.classList.add('print-fail');
-                    passBox.classList.add('inactive');
                 }
-            } else {
-                passBox.classList.add('inactive');
-                failBox.classList.add('inactive');
             }
         }
         
@@ -567,7 +538,7 @@ function updatePrintViews() {
         const printRemarkBox = item.querySelector('.print-remarks-box');
         const printRemarkText = item.querySelector('.print-remark-text');
         
-        if (remarkInput) {
+        if (remarkInput && remarkInput !== " ") {
             printRemarkText.innerText = remarkInput;
             printRemarkBox.classList.remove('hidden');
         } else {
@@ -627,7 +598,7 @@ async function exportToExcelJS() {
 
     const btn = document.getElementById("exportBtn");
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้าง...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 md:mr-3 text-lg md:text-2xl"></i> กำลังสร้างไฟล์...';
     btn.disabled = true;
 
     try {
@@ -826,6 +797,12 @@ function printChecklist(){
     
     setTimeout(() => {
         window.print();
+        
+        document.querySelectorAll(".remarks-input").forEach(textarea=>{
+            if(textarea.value === " ") {
+                textarea.value = "";
+            }
+        });
     }, 300);
 }
 
@@ -834,36 +811,6 @@ function clearChecklist(){
         localStorage.removeItem("mdb_fat_checklist");
         location.reload();
     }
-}
-
-// ฟังก์ชันอัปเดตสไตล์ของปุ่มในหน้า Print ให้ตรงกับที่เลือก
-function updatePrintRadios() {
-    const checkItems = document.querySelectorAll('.check-item');
-    checkItems.forEach(item => {
-        const radioName = item.getAttribute('data-radioname');
-        if (!radioName) return;
-        const checkedRadio = document.querySelector(`input[name="${radioName}"]:checked`);
-        const passBox = document.querySelector(`#print_status_${radioName} .print-pass-box`);
-        const failBox = document.querySelector(`#print_status_${radioName} .print-fail-box`);
-        
-        if (passBox && failBox) {
-            passBox.classList.remove('print-pass', 'inactive');
-            failBox.classList.remove('print-fail', 'inactive');
-            
-            if (checkedRadio) {
-                if (checkedRadio.value === 'Pass') {
-                    passBox.classList.add('print-pass');
-                    failBox.classList.add('inactive');
-                } else {
-                    failBox.classList.add('print-fail');
-                    passBox.classList.add('inactive');
-                }
-            } else {
-                passBox.classList.add('inactive');
-                failBox.classList.add('inactive');
-            }
-        }
-    });
 }
 
 function escapeHTML(str) {
@@ -891,8 +838,17 @@ function updateSummary() {
             const itemDescSafe = escapeHTML(item[1].split('\n')[0]); 
 
             const photoInputId = `photo_${radioName}`;
-            const photoPreview = itemDom.querySelector(`#${photoInputId}`).closest('.photo-upload-container').querySelector('.preview-img').src;
-            const photoHtml = (photoPreview && photoPreview.startsWith('data:image')) ? `<div class="mt-2"><span class="text-[10px] font-bold text-gray-500 mb-1 block">ภาพประกอบ:</span><img src="${photoPreview}" class="h-20 w-auto max-w-full rounded border border-gray-300 object-contain bg-white"></div>` : '';
+            const photoInputEl = itemDom.querySelector(`#${photoInputId}`);
+            let photoHtml = '';
+            if (photoInputEl) {
+                const uploadContainer = photoInputEl.closest('.photo-upload-container');
+                if (uploadContainer) {
+                    const previewImg = uploadContainer.querySelector('.preview-img');
+                    if (previewImg && previewImg.src && previewImg.src.startsWith('data:image')) {
+                        photoHtml = `<div class="mt-2"><span class="text-[10px] font-bold text-gray-500 mb-1 block">ภาพประกอบ:</span><img src="${previewImg.src}" class="h-20 w-auto max-w-full rounded border border-gray-300 object-contain bg-white"></div>`;
+                    }
+                }
+            }
 
             if (!checkedRadio) {
                 pendingCount++;
@@ -1026,4 +982,3 @@ window.addEventListener("load",()=>{
 
 </body>
 </html>
-
